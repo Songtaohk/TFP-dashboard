@@ -331,6 +331,28 @@ function App() {
                 </ul>
               </article>
             </div>
+            <div className="source-grid">
+              <article>
+                <h3>{t.sourceTitle}</h3>
+                <ul>
+                  {t.sourceRows.map(([label, body]) => (
+                    <li key={label}>
+                      <strong>{label}</strong> {body}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+              <article>
+                <h3>{t.formulaTitle}</h3>
+                <ul>
+                  {t.formulaRows.map(([label, body]) => (
+                    <li key={label}>
+                      <strong>{label}</strong> {body}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            </div>
           </section>
           <div className="data-title">
             <BarChart3 size={18} />
@@ -350,7 +372,7 @@ function App() {
               </thead>
               <tbody>
                 {tableRows.map((row) => (
-                  <tr key={`${row.pair}-${row.year}`} className={Number(row.year) >= 2024 ? "estimated-row" : undefined}>
+                  <tr key={`${row.pair}-${row.year}`} className={Number(row.year) >= 2025 ? "estimated-row" : undefined}>
                     <td>{row.year}</td>
                     <td>{pairLabels[row.pair][locale]}</td>
                     <td>{row.fx ?? "—"}</td>
