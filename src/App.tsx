@@ -25,6 +25,32 @@ type ChartDataset = {
   isFx?: boolean;
 };
 
+const getAxisBounds = (values: Array<number | null>) => {
+  const finiteValues = values.filter((value): value is number => value !== null && Number.isFinite(value));
+
+  if (finiteValues.length === 0) {
+    return {};
+  }
+
+  const minValue = Math.min(...finiteValues);
+  const maxValue = Math.max(...finiteValues);
+  const rawRange = maxValue - minValue;
+  const fallbackRange = Math.max(Math.abs(maxValue), 1) * 0.2;
+  const paddedRange = (rawRange || fallbackRange) * 1.3;
+  const center = (minValue + maxValue) / 2;
+  const paddedMin = center - paddedRange / 2;
+  const paddedMax = center + paddedRange / 2;
+  const roughStep = paddedRange / 5;
+  const magnitude = 10 ** Math.floor(Math.log10(roughStep));
+  const normalized = roughStep / magnitude;
+  const niceStep = (normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10) * magnitude;
+
+  return {
+    min: Math.floor(paddedMin / niceStep) * niceStep,
+    max: Math.ceil(paddedMax / niceStep) * niceStep,
+  };
+};
+
 function App() {
   const [locale, setLocale] = useState<Locale>("zh");
   const [activeTab, setActiveTab] = useState<TabId>("analysis");
@@ -77,6 +103,9 @@ function App() {
       );
     }
 
+    const leftAxisBounds = getAxisBounds(datasets.filter((item) => item.yAxisIndex === 0).flatMap((item) => item.data));
+    const rightAxisBounds = getAxisBounds(datasets.filter((item) => item.yAxisIndex === 1).flatMap((item) => item.data));
+
     return {
       backgroundColor: "transparent",
       color: datasets.map((item) => item.color),
@@ -91,8 +120,8 @@ function App() {
         axisLine: { lineStyle: { color: "#334155" } },
       },
       yAxis: [
-        { ...axis, name: axisName(leftAxisText, leftAxisLabel), position: "left" },
-        { ...axis, name: axisName(rightAxisText, rightAxisLabel), position: "right", splitLine: { show: false } },
+        { ...axis, ...leftAxisBounds, scale: true, name: axisName(leftAxisText, leftAxisLabel), position: "left" },
+        { ...axis, ...rightAxisBounds, scale: true, name: axisName(rightAxisText, rightAxisLabel), position: "right", splitLine: { show: false } },
       ],
       series: datasets.map((item) => ({
         ...item,
