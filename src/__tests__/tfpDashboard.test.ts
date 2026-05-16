@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dashboardData, years, type RegionKey } from "../data/tfpDashboard";
-
-const regions: RegionKey[] = ["uscn", "eucn", "euus"];
+import { dashboardData, pairGroups, years, type PairKey } from "../data/tfpDashboard";
 
 describe("TFP dashboard data", () => {
   it("keeps every series aligned to the year range", () => {
@@ -9,13 +7,13 @@ describe("TFP dashboard data", () => {
     expect(years[0]).toBe("1999");
     expect(years.at(-1)).toBe("2026");
 
-    for (const region of regions) {
-      expect(dashboardData.fx[region]).toHaveLength(years.length);
-      expect(dashboardData.tfp[region]).toHaveLength(years.length);
-      expect(dashboardData.nomSpread[region]).toHaveLength(years.length);
-      expect(dashboardData.realSpread[region]).toHaveLength(years.length);
-    }
+    const pairs = Object.values(pairGroups).flat() as PairKey[];
 
-    expect(dashboardData.euRealRate).toHaveLength(years.length);
+    for (const pair of pairs) {
+      expect(dashboardData.fx[pair]).toHaveLength(years.length);
+      expect(dashboardData.tfp[pair]).toHaveLength(years.length);
+      expect(dashboardData.nomSpread[pair]).toHaveLength(years.length);
+      expect(dashboardData.realSpread[pair]).toHaveLength(years.length);
+    }
   });
 });

@@ -4,35 +4,24 @@ import { BarChart3, BookOpen, Languages, LineChart, Table2 } from "lucide-react"
 import {
   copy,
   dashboardData,
-  regionLabels,
+  groupLabels,
+  hasSpreadData,
+  pairGroups,
+  pairLabels,
   years,
   type ChartMode,
+  type GroupKey,
   type Locale,
-  type RegionKey,
+  type PairKey,
 } from "./data/tfpDashboard";
 
 type TabId = "analysis" | "explorer" | "rawdata";
 
-const tableHeaders = [
-  "USDCNY",
-  "EURCNY",
-  "EURUSD",
-  "ln(US)-ln(CN)",
-  "ln(EU)-ln(US)",
-  "ln(EU)-ln(CN)",
-  "EU 10Y Real",
-  "Nom(U-C)",
-  "Real(U-C)",
-  "Nom(E-U)",
-  "Real(E-U)",
-  "Nom(E-C)",
-  "Real(E-C)",
-];
-
 function App() {
   const [locale, setLocale] = useState<Locale>("zh");
   const [activeTab, setActiveTab] = useState<TabId>("analysis");
-  const [region, setRegion] = useState<RegionKey>("uscn");
+  const [group, setGroup] = useState<GroupKey>("usd");
+  const [pair, setPair] = useState<PairKey>("usdcny");
   const [chartMode, setChartMode] = useState<ChartMode>("spread");
   const chartRef = useRef<HTMLDivElement | null>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
@@ -48,23 +37,23 @@ function App() {
 
     if (chartMode === "spread") {
       datasets.push(
-        { name: regionLabels[region].fx, data: dashboardData.fx[region], yAxisIndex: 0, color: "#10b981" },
-        { name: t.labels.nominal, data: dashboardData.nomSpread[region], yAxisIndex: 1, color: "#f59e0b", lineStyle: { type: "dashed" } },
-        { name: t.labels.real, data: dashboardData.realSpread[region], yAxisIndex: 1, color: "#fb7185" },
+        { name: pairLabels[pair].fx, data: dashboardData.fx[pair], yAxisIndex: 0, color: "#10b981" },
+        { name: t.labels.nominal, data: dashboardData.nomSpread[pair], yAxisIndex: 1, color: "#f59e0b", lineStyle: { type: "dashed" } },
+        { name: t.labels.real, data: dashboardData.realSpread[pair], yAxisIndex: 1, color: "#fb7185" },
       );
     }
 
     if (chartMode === "tfp-fx") {
       datasets.push(
-        { name: regionLabels[region].fx, data: dashboardData.fx[region], yAxisIndex: 0, color: "#10b981" },
-        { name: t.labels.tfp, data: dashboardData.tfp[region], yAxisIndex: 1, color: "#3b82f6" },
+        { name: pairLabels[pair].fx, data: dashboardData.fx[pair], yAxisIndex: 0, color: "#10b981" },
+        { name: t.labels.tfp, data: dashboardData.tfp[pair], yAxisIndex: 1, color: "#3b82f6" },
       );
     }
 
     if (chartMode === "tfp-real") {
       datasets.push(
-        { name: t.labels.tfp, data: dashboardData.tfp[region], yAxisIndex: 0, color: "#3b82f6" },
-        { name: t.labels.real, data: dashboardData.realSpread[region], yAxisIndex: 1, color: "#fb7185" },
+        { name: t.labels.tfp, data: dashboardData.tfp[pair], yAxisIndex: 0, color: "#3b82f6" },
+        { name: t.labels.real, data: dashboardData.realSpread[pair], yAxisIndex: 1, color: "#fb7185" },
       );
     }
 
@@ -87,10 +76,10 @@ function App() {
         type: "line",
         smooth: true,
         symbolSize: 5,
-        lineStyle: { width: item.name === regionLabels[region].fx ? 4 : 3, ...item.lineStyle },
+        lineStyle: { width: item.name === pairLabels[pair].fx ? 4 : 3, ...item.lineStyle },
       })),
     };
-  }, [chartMode, locale, region, t.labels.nominal, t.labels.real, t.labels.tfp]);
+  }, [chartMode, pair, t.labels.nominal, t.labels.real, t.labels.tfp]);
 
   useEffect(() => {
     if (activeTab !== "explorer" || !chartRef.current) {
@@ -116,24 +105,21 @@ function App() {
     }
   }, [activeTab, chartOptions]);
 
-  const tableRows = years.map((year, index) => ({
-    year,
-    values: [
-      dashboardData.fx.uscn[index],
-      dashboardData.fx.eucn[index],
-      dashboardData.fx.euus[index],
-      dashboardData.tfp.uscn[index],
-      dashboardData.tfp.euus[index],
-      dashboardData.tfp.eucn[index],
-      `${dashboardData.euRealRate[index]}%`,
-      `${dashboardData.nomSpread.uscn[index]}%`,
-      `${dashboardData.realSpread.uscn[index]}%`,
-      `${dashboardData.nomSpread.euus[index]}%`,
-      `${dashboardData.realSpread.euus[index]}%`,
-      `${dashboardData.nomSpread.eucn[index]}%`,
-      `${dashboardData.realSpread.eucn[index]}%`,
-    ],
-  }));
+  const tableRows = (Object.values(pairGroups).flat() as PairKey[]).flatMap((pairKey) =>
+    years.map((year, index) => ({
+      pair: pairKey,
+      year,
+      fx: dashboardData.fx[pairKey][index],
+      tfp: dashboardData.tfp[pairKey][index],
+      nominal: dashboardData.nomSpread[pairKey][index],
+      real: dashboardData.realSpread[pairKey][index],
+    })),
+  );
+
+  const onGroupChange = (nextGroup: GroupKey) => {
+    setGroup(nextGroup);
+    setPair(pairGroups[nextGroup][0]);
+  };
 
   return (
     <div className="dashboard-shell">
@@ -232,16 +218,26 @@ function App() {
           <aside className="control-panel">
             <label>
               <span>{t.explorerStep1}</span>
-              <select value={region} onChange={(event) => setRegion(event.target.value as RegionKey)}>
-                {(Object.keys(regionLabels) as RegionKey[]).map((key) => (
+              <select value={group} onChange={(event) => onGroupChange(event.target.value as GroupKey)}>
+                {(Object.keys(pairGroups) as GroupKey[]).map((key) => (
                   <option key={key} value={key}>
-                    {regionLabels[key][locale]}
+                    {groupLabels[key][locale]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>{t.explorerStep2}</span>
+              <select value={pair} onChange={(event) => setPair(event.target.value as PairKey)}>
+                {pairGroups[group].map((key) => (
+                  <option key={key} value={key}>
+                    {pairLabels[key][locale]}
                   </option>
                 ))}
               </select>
             </label>
             <div className="mode-group">
-              <span>{t.explorerStep2}</span>
+              <span>{pairLabels[pair].fx}</span>
               {(Object.keys(t.modes) as ChartMode[]).map((mode) => (
                 <label className="radio-card" key={mode}>
                   <input type="radio" name="chart-mode" value={mode} checked={chartMode === mode} onChange={() => setChartMode(mode)} />
@@ -249,6 +245,7 @@ function App() {
                 </label>
               ))}
             </div>
+            {!hasSpreadData(pair) && <p className="data-note">{t.missingSpread}</p>}
           </aside>
           <section className="chart-panel" aria-label={t.tabs.explorer}>
             <div ref={chartRef} className="chart-surface" />
@@ -292,18 +289,22 @@ function App() {
               <thead>
                 <tr>
                   <th>{t.year}</th>
-                  {tableHeaders.map((header) => (
-                    <th key={header}>{header}</th>
-                  ))}
+                  <th>Pair</th>
+                  <th>FX</th>
+                  <th>TFP Log Spread</th>
+                  <th>Nom Spread</th>
+                  <th>Real Spread</th>
                 </tr>
               </thead>
               <tbody>
                 {tableRows.map((row) => (
-                  <tr key={row.year} className={Number(row.year) >= 2024 ? "estimated-row" : undefined}>
+                  <tr key={`${row.pair}-${row.year}`} className={Number(row.year) >= 2024 ? "estimated-row" : undefined}>
                     <td>{row.year}</td>
-                    {row.values.map((value, index) => (
-                      <td key={`${row.year}-${tableHeaders[index]}`}>{value}</td>
-                    ))}
+                    <td>{pairLabels[row.pair][locale]}</td>
+                    <td>{row.fx ?? "—"}</td>
+                    <td>{row.tfp ?? "—"}</td>
+                    <td>{row.nominal === null ? "—" : `${row.nominal}%`}</td>
+                    <td>{row.real === null ? "—" : `${row.real}%`}</td>
                   </tr>
                 ))}
               </tbody>
