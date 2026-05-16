@@ -63,6 +63,9 @@ const v20 = {
 
 const publicCountryData = {"fx":{"jpy":[109.8124,104.487,116.4445,120.4227,111.4966,104.4357,106.2955,112.2859,114.6039,99.4444,90.4522,84.0821,76.9379,76.7598,93.8578,101.2833,116.4112,104.4938,107.3559,105.3216,104.0065,101.885,104.7926,126.4028,134.5559,145.0963,143.265,152.3125],"krw":[1148.8073,1096.1007,1237.5622,1202.4092,1146.408,1105.8962,988.3117,921.2868,904.0567,1056.7708,1230.6726,1107.0296,1068.6229,1083.0141,1052.7333,1007.9429,1087.6285,1114.9229,1081.2763,1048.7504,1112.2015,1126.4842,1092.2524,1242.0957,1251.4776,1306.1945,1361.4907,1422.1397],"twd":[31.2077,30.2981,32.3988,33.2131,33.0865,32.2255,31.019,31.3813,31.5959,30.3175,31.8814,30.1699,28.3651,28.4256,28.5428,29.0223,30.528,30.9917,29.1153,28.7441,29.4839,28.1076,26.6521,28.6503,29.8345,30.7584,29.8528,30.6027],"inr":[41.6402,43.6129,45.2298,46.7626,44.8057,43.7062,42.4771,43.6219,40.073,41.73,46.6657,43.5519,44.9658,51.3293,56.2729,58.4246,61.651,64.5841,62.3132,65.2298,67.142,70.7471,70.5358,75.5569,79.0775,80.1443,83.4739,89.2332]},"tfp":{"us":[0.869326,0.87935,0.880456,0.891869,0.907184,0.921985,0.930433,0.928767,0.927742,0.923284,0.925019,0.940476,0.938276,0.939691,0.941934,0.943991,0.948802,0.94841,0.953378,0.958201,0.964266,0.973078,1,0.984038,0.992998,0.99976,1.006568,1.013422],"cn":[0.50186,0.512456,0.524457,0.540571,0.559177,0.58005,0.592121,0.633922,0.700974,0.735487,0.753161,0.759524,0.788436,0.800227,0.811297,0.829218,0.851113,0.872795,0.898877,0.924569,0.946753,0.959374,1,0.995394,1.013726,1.034246,1.055182,1.076541],"jp":[0.977459,0.989585,0.98856,0.990958,0.996456,1.003929,1.011893,1.009513,1.014392,1.001605,0.962928,0.995154,0.99475,1.001465,1.017481,1.010581,1.01847,1.016344,1.021035,1.018081,1.014198,0.985455,1,0.997666,1.004987,1.002337,0.999694,0.997058],"kr":[0.804576,0.818934,0.820868,0.847418,0.851899,0.864474,0.879055,0.890057,0.913276,0.92843,0.92486,0.956678,0.961033,0.956438,0.961221,0.965268,0.962718,0.968788,0.98087,0.993111,0.994751,0.987357,1,0.99736,0.976855,0.976187,0.97552,0.974853],"tw":[0.749409,0.762246,0.759754,0.78018,0.784715,0.797343,0.80934,0.825044,0.849689,0.837121,0.827454,0.882932,0.890066,0.891984,0.896032,0.918737,0.912746,0.914826,0.926828,0.934933,0.945387,0.973304,1,0.989976,0.98693,0.997319,1.007818,1.018427],"in":[0.86283,0.84915,0.842867,0.832587,0.854161,0.871255,0.892505,0.913934,0.924917,0.900211,0.917489,0.941361,0.933406,0.936163,0.941834,0.97175,1.009523,1.051069,1.070467,1.084857,1.035691,0.955576,1,1.000232,1.010531,1.000873,0.991307,0.981833]},"nominal":{"us":[5.6367,6.0292,5.0175,4.6108,4.015,4.2742,4.29,4.7917,4.6292,3.6667,3.2567,3.2142,2.7858,1.8025,2.3508,2.5408,2.1358,1.8417,2.33,2.91,2.1442,0.8942,1.4425,2.9517,3.9575,4.2083,4.2917,4.2275],"jp":[1.749,1.7444,1.319,1.2632,1.0032,1.4927,1.3547,1.7405,1.6655,1.4673,1.3337,1.1483,1.1024,0.8356,0.6897,0.5203,0.35,-0.0662,0.0517,0.065,-0.1104,-0.0054,0.0717,0.2317,0.5625,0.9183,1.5533,2.3025],"kr":[null,7.7633,6.855,6.5867,5.0483,4.7283,4.95,5.1517,5.3508,5.5683,5.1658,4.7733,4.2025,3.4475,3.2781,3.1863,2.3058,1.7474,2.2826,2.5027,1.7023,1.4997,2.0645,3.3635,3.6423,3.2193,2.8923,3.6405],"in":[null,null,null,null,null,null,null,null,null,null,null,null,null,8.2594,8.11,8.5867,7.776,7.2062,6.9239,7.7047,6.997,6.1918,6.2575,7.1924,7.2204,6.976,6.5264,6.7807],"eu":[4.6551,5.4389,5.0273,4.9229,4.1609,4.1408,3.4409,3.8595,4.3317,4.356,4.0286,3.7814,4.308,3.0477,3.0118,2.2813,1.2675,0.9286,1.1707,1.2641,0.5846,0.2136,0.1997,2.0414,3.2651,2.9753,3.1467,3.221]},"cpi":{"us":[2.188,3.3769,2.8262,1.586,2.2701,2.6772,3.3927,3.2259,2.8527,3.8391,-0.3555,1.64,3.1568,2.0693,1.4648,1.6222,0.1186,1.2616,2.1301,2.4426,1.8122,1.2336,4.6979,8.0028,4.1163,2.9495,null,null],"jp":[-0.3413,-0.6766,-0.7401,-0.9235,-0.2565,-0.0086,-0.2829,0.2494,0.06,1.3801,-1.3528,-0.7282,-0.2725,-0.0441,0.335,2.7592,0.7953,-0.1273,0.4842,0.9891,0.4688,-0.025,-0.2334,2.4977,3.2681,2.7385,null,null],"kr":[0.813,2.2592,4.0666,2.7623,3.5149,3.5907,2.7538,2.2423,2.5346,4.6739,2.7565,2.9393,4.026,2.1871,1.3013,1.2748,0.7063,0.9717,1.9443,1.4758,0.383,0.5373,2.4983,5.0895,3.5975,2.3217,null,null],"in":[4.6698,4.0094,3.7793,4.2972,3.8059,3.7673,4.2463,5.7965,6.3729,8.3493,10.8824,11.9894,8.9118,9.479,10.0179,6.6657,4.907,4.9482,3.3282,3.9388,3.7295,6.6234,5.1314,6.699,5.6491,4.953,null,null],"eu":[2.1572,3.1508,3.374,2.4244,2.092,2.2862,2.4877,2.6663,2.5107,4.165,0.8393,1.5311,3.2894,2.6628,1.22,0.1993,-0.0616,0.1833,1.4291,1.7386,1.6305,0.4765,2.5545,8.8337,6.2994,2.4353,null,null]}} as const;
 
+const taiwanNominal10Y: SeriesValue[] = [null, null, null, null, null, null, null, 1.77, 2.35, 2.24, 1.51, 1.37, 1.4, 1.2, 1.46, 1.6, 1.36, 0.87, 1.05, 0.94, 0.72, 0.42, 0.47, 1.21, 1.21, 1.52, 1.46, 1.5];
+const taiwanCpiInflation: SeriesValue[] = [0.18, 1.25, 0, -0.2, -0.28, 1.61, 2.31, 0.6, 1.8, 3.53, -0.87, 0.97, 1.42, 1.94, 0.79, 1.19, -0.31, 1.39, 0.62, 1.35, 0.56, -0.24, 1.97, 2.95, 2.49, 2.18, 1.66, null];
+
 const round = (value: SeriesValue, digits = 2): SeriesValue => value === null || Number.isNaN(value) ? null : Number(value.toFixed(digits));
 const get = (values: readonly SeriesValue[], index: number) => values[index] ?? null;
 const divide = (left: SeriesValue, right: SeriesValue, digits = 2): SeriesValue => left === null || right === null ? null : round(left / right, digits);
@@ -88,6 +91,11 @@ const realRates = Object.fromEntries(
     }),
   ]),
 ) as Record<"us" | "jp" | "kr" | "in" | "eu", SeriesValue[]>;
+const taiwanRealRates = years.map((_, index) => {
+  const rate = taiwanNominal10Y[index];
+  const cpi = taiwanCpiInflation[index];
+  return rate === null || cpi === null ? null : round(rate - cpi, 2);
+});
 
 const inferredChinaNominal = years.map((_, index) => {
   const us = publicCountryData.nominal.us[index];
@@ -105,7 +113,7 @@ const nominalRates: Record<EconomyKey, SeriesValue[]> = {
   jp: [...publicCountryData.nominal.jp],
   kr: [...publicCountryData.nominal.kr],
   in: [...publicCountryData.nominal.in],
-  tw: years.map(() => null),
+  tw: [...taiwanNominal10Y],
 };
 const realRateSeries: Record<EconomyKey, SeriesValue[]> = {
   us: realRates.us,
@@ -114,7 +122,7 @@ const realRateSeries: Record<EconomyKey, SeriesValue[]> = {
   jp: realRates.jp,
   kr: realRates.kr,
   in: realRates.in,
-  tw: years.map(() => null),
+  tw: taiwanRealRates,
 };
 const tfpIndex: Record<EconomyKey, SeriesValue[]> = {
   us: [...publicCountryData.tfp.us],
@@ -178,7 +186,7 @@ export const copy = {
   zh: {
     title: "中美欧亚宏观资产定价深度看板",
     subtitle: "基于汇率、TFP、名义利差与实际利差的交叉比较 (1999-2026)",
-    badge: "V12.0",
+    badge: "V12.1",
     sourceVersion: "FX/TFP Asia Expansion",
     updated: "UPDATED 2026-05-16",
     tabs: { analysis: "深度分析", explorer: "交互沙盘", rawdata: "数据明细" },
@@ -193,15 +201,15 @@ export const copy = {
     h3: "交叉货币对的比较逻辑",
     p3: "每个货币对同时展示汇率、TFP 对数差、名义利差和实际利差。原 V20 的 USDCNY、EURUSD、EURCNY 保持原始口径；新增亚洲序列使用公开数据派生。",
     h4: "数据覆盖说明",
-    p4: "台湾的长期国债利率和 CPI 序列暂未纳入，因此涉及 TWD 的利差曲线显示为空，但 FX 和 TFP 曲线仍可比较。",
+    p4: "台湾 CPI 已使用 data.gov.tw / 主计总处月度总指数计算；台湾 10Y 国债收益率使用 TPEx 收益率曲线文件的 10 年期限行。1999-2005 因 TPEx 曲线未覆盖仍为空。",
     divergence: [["汇率：", "USDJPY、USDKRW、USDTWD、USDINR 来自 FRED 年度均值；交叉汇率由三角关系派生。"], ["TFP：", "新增国家/地区使用 Penn World Table 11.0 rtfpna 序列，2024-2026 以 2017-2023 CAGR 外推。"], ["利差：", "名义利差为基准经济体 10Y 减报价经济体 10Y；实际利差为名义利率扣除 CPI 后再相减。"]],
     conclusionTitle: "扩展后的使用方式",
     conclusion: "先选择基准分组，再选择货币对，最后选择汇率/TFP/利差对比模式。",
     auditTitle: "数据来源与审计说明",
     auditHistoricalTitle: "1. 历史口径",
-    auditHistorical: [["FX:", "FRED 日度汇率年度均值，交叉汇率由 USD base 派生。"], ["TFP:", "Penn World Table 11.0 rtfpna。"], ["Rates/CPI:", "FRED OECD / World Bank 序列；CN/EU/US 三组保留 V20 口径。"]],
+    auditHistorical: [["FX:", "FRED 日度汇率年度均值，交叉汇率由 USD base 派生。"], ["TFP:", "Penn World Table 11.0 rtfpna。"], ["Rates/CPI:", "FRED OECD / World Bank 序列；台湾 CPI 来自 data.gov.tw / 主计总处，台湾 10Y 来自 TPEx。"]],
     auditForecastTitle: "2. 预测/缺口说明",
-    auditForecast: [["2024-2026 TFP:", "使用 2017-2023 CAGR 外推。"], ["Taiwan spreads:", "缺少完整长期利率/CPI 覆盖，暂不展示。"], ["Existing V20:", "USDCNY、EURUSD、EURCNY 保持原始 V20 数值。"]],
+    auditForecast: [["2024-2026 TFP:", "使用 2017-2023 CAGR 外推。"], ["Taiwan spreads:", "TPEx 10Y 收益率自 2006 年起可用；2026 使用 1-5 月样本，CPI 2026 暂为空。"], ["Existing V20:", "USDCNY、EURUSD、EURCNY 保持原始 V20 数值。"]],
     explorerStep1: "第一步：选择基准分组",
     explorerStep2: "第二步：选择交叉货币对",
     modes: { spread: "汇率 vs 名义/实际利差", "tfp-fx": "TFP 对数差 vs 汇率", "tfp-real": "TFP 对数差 vs 实际利差" },
@@ -213,7 +221,7 @@ export const copy = {
   en: {
     title: "Macro Asset Pricing & Asia TFP Dashboard",
     subtitle: "Cross-pair FX, TFP, nominal spread and real spread analysis (1999-2026)",
-    badge: "V12.0",
+    badge: "V12.1",
     sourceVersion: "FX/TFP Asia Expansion",
     updated: "UPDATED 2026-05-16",
     tabs: { analysis: "Deep Analysis", explorer: "Interactive Sandbox", rawdata: "Data Matrix" },
@@ -228,15 +236,15 @@ export const copy = {
     h3: "Cross-Pair Logic",
     p3: "Each pair shows FX, TFP log spread, nominal spread and real spread. Original V20 USDCNY, EURUSD and EURCNY values are preserved; new Asian series use public data.",
     h4: "Coverage Notes",
-    p4: "Taiwan long-yield and CPI coverage is not yet included, so TWD spread curves are blank while FX and TFP remain available.",
+    p4: "Taiwan CPI now comes from the data.gov.tw / DGBAS monthly CPI index, and Taiwan 10Y yield uses the 10-year tenor row in TPEx yield-curve files. TPEx curve coverage starts in 2006, so 1999-2005 remain blank.",
     divergence: [["FX:", "FRED daily exchange rates averaged by year; cross rates are derived through triangular relationships."], ["TFP:", "Penn World Table 11.0 rtfpna; 2024-2026 extrapolated with 2017-2023 CAGR."], ["Spreads:", "Nominal spread is base 10Y minus quote 10Y; real spread subtracts CPI inflation first."]],
     conclusionTitle: "How to Use the Expanded View",
     conclusion: "Choose a base group, choose a pair, then select FX/spread, TFP/FX, or TFP/real spread mode.",
     auditTitle: "Data Source & Audit",
     auditHistoricalTitle: "1. Historical Coverage",
-    auditHistorical: [["FX:", "FRED daily FX annual averages; cross rates derived from USD base."], ["TFP:", "Penn World Table 11.0 rtfpna."], ["Rates/CPI:", "FRED OECD / World Bank series; CN/EU/US V20 pairs preserve the original methodology."]],
+    auditHistorical: [["FX:", "FRED daily FX annual averages; cross rates derived from USD base."], ["TFP:", "Penn World Table 11.0 rtfpna."], ["Rates/CPI:", "FRED OECD / World Bank series; Taiwan CPI uses data.gov.tw / DGBAS and Taiwan 10Y uses TPEx."]],
     auditForecastTitle: "2. Forecast / Gap Notes",
-    auditForecast: [["2024-2026 TFP:", "Extrapolated with 2017-2023 CAGR."], ["Taiwan spreads:", "Not shown until complete long-yield/CPI coverage is added."], ["Existing V20:", "USDCNY, EURUSD and EURCNY keep the original V20 values."]],
+    auditForecast: [["2024-2026 TFP:", "Extrapolated with 2017-2023 CAGR."], ["Taiwan spreads:", "TPEx 10Y yields are available from 2006; 2026 uses Jan-May samples, while 2026 CPI remains blank."], ["Existing V20:", "USDCNY, EURUSD and EURCNY keep the original V20 values."]],
     explorerStep1: "Step 1: Select Base Group",
     explorerStep2: "Step 2: Select Cross Pair",
     modes: { spread: "FX vs Nominal / Real Spread", "tfp-fx": "TFP Log Spread vs FX", "tfp-real": "TFP Log Spread vs Real Spread" },

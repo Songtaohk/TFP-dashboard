@@ -1,6 +1,6 @@
 # TFP Macro Asset Pricing Dashboard
 
-中美欧宏观资产定价深度看板。当前网页同步自 `/Users/songtaozhang/TFP-Comp V20.html`，页面展示版本为 V11.0。页面展示 1999-2026 年 TFP 对数差、汇率、名义利差和实际利差，并提供中英文切换、交互图表、数据审计说明和数据明细表。
+中美欧亚宏观资产定价深度看板。当前页面展示版本为 V12.1。页面展示 1999-2026 年 TFP 对数差、汇率、名义利差和实际利差，并提供中英文切换、交互图表、数据审计说明和数据明细表。
 
 ## Run
 
@@ -41,3 +41,4 @@ npm run build
 - 页面不依赖运行时 CDN；图表由项目依赖 `echarts` 渲染。
 - 数据以内嵌静态数组发布，不依赖后台接口或数据库。
 - 系统字体栈替代 Google Fonts，减少公网加载失败风险。
+- 台湾 CPI 使用 data.gov.tw / 主计总处月度总指数计算年度通胀；台湾 10Y 国债收益率使用 TPEx “Government Bond & Corporate Bond Yield Curve” 文件中的 10 年期限行。

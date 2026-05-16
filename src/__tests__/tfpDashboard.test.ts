@@ -16,4 +16,11 @@ describe("TFP dashboard data", () => {
       expect(dashboardData.realSpread[pair]).toHaveLength(years.length);
     }
   });
+
+  it("includes Taiwan spread coverage from official CPI and TPEx yield data", () => {
+    expect(dashboardData.nomSpread.usdtwd.some((value) => value !== null)).toBe(true);
+    expect(dashboardData.realSpread.usdtwd.some((value) => value !== null)).toBe(true);
+    expect(dashboardData.nomSpread.jpytwd.some((value) => value !== null)).toBe(true);
+    expect(dashboardData.realSpread.cnytwd.some((value) => value !== null)).toBe(true);
+  });
 });
