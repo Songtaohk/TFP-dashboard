@@ -16,6 +16,14 @@ import {
 } from "./data/tfpDashboard";
 
 type TabId = "analysis" | "explorer" | "rawdata";
+type ChartDataset = {
+  name: string;
+  data: Array<number | null>;
+  yAxisIndex: 0 | 1;
+  color: string;
+  lineStyle?: { type: "dashed" };
+  isFx?: boolean;
+};
 
 function App() {
   const [locale, setLocale] = useState<Locale>("zh");
@@ -28,32 +36,44 @@ function App() {
   const t = copy[locale];
 
   const chartOptions = useMemo(() => {
-    const datasets = [];
+    const leftAxisText = locale === "zh" ? "左轴" : "Left axis";
+    const rightAxisText = locale === "zh" ? "右轴" : "Right axis";
+    const axisName = (side: string, label: string) => `${side}: ${label}`;
+    const seriesName = (side: string, label: string) => `${side} · ${label}`;
+    const datasets: ChartDataset[] = [];
+    const leftAxisLabel = chartMode === "tfp-real" ? t.labels.tfp : pairLabels[pair].fx;
+    const rightAxisLabel =
+      chartMode === "spread"
+        ? `${t.labels.nominal} / ${t.labels.real}`
+        : chartMode === "tfp-fx"
+          ? t.labels.tfp
+          : t.labels.real;
     const axis = {
       type: "value",
+      nameTextStyle: { color: "#cbd5e1", fontWeight: 700, padding: [0, 0, 6, 0] },
       splitLine: { lineStyle: { color: "#1e293b" } },
       axisLabel: { color: "#94a3b8" },
     };
 
     if (chartMode === "spread") {
       datasets.push(
-        { name: pairLabels[pair].fx, data: dashboardData.fx[pair], yAxisIndex: 0, color: "#10b981" },
-        { name: t.labels.nominal, data: dashboardData.nomSpread[pair], yAxisIndex: 1, color: "#f59e0b", lineStyle: { type: "dashed" } },
-        { name: t.labels.real, data: dashboardData.realSpread[pair], yAxisIndex: 1, color: "#fb7185" },
+        { name: seriesName(leftAxisText, pairLabels[pair].fx), data: dashboardData.fx[pair], yAxisIndex: 0, color: "#10b981", isFx: true },
+        { name: seriesName(rightAxisText, t.labels.nominal), data: dashboardData.nomSpread[pair], yAxisIndex: 1, color: "#f59e0b", lineStyle: { type: "dashed" } },
+        { name: seriesName(rightAxisText, t.labels.real), data: dashboardData.realSpread[pair], yAxisIndex: 1, color: "#fb7185" },
       );
     }
 
     if (chartMode === "tfp-fx") {
       datasets.push(
-        { name: pairLabels[pair].fx, data: dashboardData.fx[pair], yAxisIndex: 0, color: "#10b981" },
-        { name: t.labels.tfp, data: dashboardData.tfp[pair], yAxisIndex: 1, color: "#3b82f6" },
+        { name: seriesName(leftAxisText, pairLabels[pair].fx), data: dashboardData.fx[pair], yAxisIndex: 0, color: "#10b981", isFx: true },
+        { name: seriesName(rightAxisText, t.labels.tfp), data: dashboardData.tfp[pair], yAxisIndex: 1, color: "#3b82f6" },
       );
     }
 
     if (chartMode === "tfp-real") {
       datasets.push(
-        { name: t.labels.tfp, data: dashboardData.tfp[pair], yAxisIndex: 0, color: "#3b82f6" },
-        { name: t.labels.real, data: dashboardData.realSpread[pair], yAxisIndex: 1, color: "#fb7185" },
+        { name: seriesName(leftAxisText, t.labels.tfp), data: dashboardData.tfp[pair], yAxisIndex: 0, color: "#3b82f6" },
+        { name: seriesName(rightAxisText, t.labels.real), data: dashboardData.realSpread[pair], yAxisIndex: 1, color: "#fb7185" },
       );
     }
 
@@ -62,7 +82,7 @@ function App() {
       color: datasets.map((item) => item.color),
       tooltip: { trigger: "axis", backgroundColor: "#0f172a", borderColor: "#334155", textStyle: { color: "#f8fafc" } },
       legend: { top: 0, textStyle: { color: "#f1f5f9", fontWeight: 700 } },
-      grid: { top: 54, right: 56, bottom: 42, left: 54, containLabel: true },
+      grid: { top: 72, right: 72, bottom: 42, left: 72, containLabel: true },
       xAxis: {
         type: "category",
         boundaryGap: false,
@@ -70,16 +90,19 @@ function App() {
         axisLabel: { color: "#94a3b8" },
         axisLine: { lineStyle: { color: "#334155" } },
       },
-      yAxis: [{ ...axis, position: "left" }, { ...axis, position: "right", splitLine: { show: false } }],
+      yAxis: [
+        { ...axis, name: axisName(leftAxisText, leftAxisLabel), position: "left" },
+        { ...axis, name: axisName(rightAxisText, rightAxisLabel), position: "right", splitLine: { show: false } },
+      ],
       series: datasets.map((item) => ({
         ...item,
         type: "line",
         smooth: true,
         symbolSize: 5,
-        lineStyle: { width: item.name === pairLabels[pair].fx ? 4 : 3, ...item.lineStyle },
+        lineStyle: { width: item.isFx ? 4 : 3, ...item.lineStyle },
       })),
     };
-  }, [chartMode, pair, t.labels.nominal, t.labels.real, t.labels.tfp]);
+  }, [chartMode, locale, pair, t.labels.nominal, t.labels.real, t.labels.tfp]);
 
   useEffect(() => {
     if (activeTab !== "explorer" || !chartRef.current) {

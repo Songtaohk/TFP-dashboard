@@ -23,4 +23,10 @@ describe("TFP dashboard data", () => {
     expect(dashboardData.nomSpread.jpytwd.some((value) => value !== null)).toBe(true);
     expect(dashboardData.realSpread.cnytwd.some((value) => value !== null)).toBe(true);
   });
+
+  it("keeps EUR cross-pair TFP comparisons visible", () => {
+    expect(dashboardData.tfp.eurjpy.some((value) => value !== null)).toBe(true);
+    expect(dashboardData.tfp.eurcny.slice(-4).every((value) => value !== null)).toBe(true);
+    expect(new Set(dashboardData.tfp.eurcny.slice(-4)).size).toBeGreaterThan(1);
+  });
 });

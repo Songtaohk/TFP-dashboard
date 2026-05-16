@@ -75,10 +75,10 @@ const spread = (base: readonly SeriesValue[], quote: readonly SeriesValue[], ind
   const right = get(quote, index);
   return left === null || right === null ? null : round(left - right, 2);
 };
-const logSpread = (base: readonly SeriesValue[], quote: readonly SeriesValue[], index: number): SeriesValue => {
+const logSpread = (base: readonly SeriesValue[], quote: readonly SeriesValue[], index: number, digits = 3): SeriesValue => {
   const left = get(base, index);
   const right = get(quote, index);
-  return left === null || right === null || left <= 0 || right <= 0 ? null : round(Math.log(left) - Math.log(right), 2);
+  return left === null || right === null || left <= 0 || right <= 0 ? null : round(Math.log(left) - Math.log(right), digits);
 };
 
 const realRates = Object.fromEntries(
@@ -124,9 +124,14 @@ const realRateSeries: Record<EconomyKey, SeriesValue[]> = {
   in: realRates.in,
   tw: taiwanRealRates,
 };
+const inferredEuroTfp = years.map((_, index) => {
+  const us = publicCountryData.tfp.us[index];
+  const eurUsdGap = v20.tfp.eurusd[index];
+  return us === null || eurUsdGap === null ? null : round(Math.exp(eurUsdGap) * us, 6);
+});
 const tfpIndex: Record<EconomyKey, SeriesValue[]> = {
   us: [...publicCountryData.tfp.us],
-  eu: years.map(() => null),
+  eu: inferredEuroTfp,
   cn: [...publicCountryData.tfp.cn],
   jp: [...publicCountryData.tfp.jp],
   kr: [...publicCountryData.tfp.kr],
@@ -156,12 +161,18 @@ const deriveFx = (pair: PairKey, index: number): SeriesValue => {
 const derivePairSeries = (pair: PairKey): { fx: SeriesValue[]; tfp: SeriesValue[]; nomSpread: SeriesValue[]; realSpread: SeriesValue[] } => {
   if (pair in v20.fx && pair in v20.tfp && pair in v20.nomSpread && pair in v20.realSpread) {
     const key = pair as "usdcny" | "eurusd" | "eurcny";
-    return { fx: [...v20.fx[key]], tfp: [...v20.tfp[key]], nomSpread: [...v20.nomSpread[key]], realSpread: [...v20.realSpread[key]] };
+    const meta = pairLabels[pair];
+    return {
+      fx: [...v20.fx[key]],
+      tfp: pair === "eurcny" ? years.map((_, index) => logSpread(tfpIndex[meta.base], tfpIndex[meta.quote], index, 3)) : [...v20.tfp[key]],
+      nomSpread: [...v20.nomSpread[key]],
+      realSpread: [...v20.realSpread[key]],
+    };
   }
   const meta = pairLabels[pair];
   return {
     fx: years.map((_, index) => deriveFx(pair, index)),
-    tfp: years.map((_, index) => logSpread(tfpIndex[meta.base], tfpIndex[meta.quote], index)),
+    tfp: years.map((_, index) => logSpread(tfpIndex[meta.base], tfpIndex[meta.quote], index, 3)),
     nomSpread: years.map((_, index) => spread(nominalRates[meta.base], nominalRates[meta.quote], index)),
     realSpread: years.map((_, index) => spread(realRateSeries[meta.base], realRateSeries[meta.quote], index)),
   };
@@ -186,7 +197,7 @@ export const copy = {
   zh: {
     title: "中美欧亚宏观资产定价深度看板",
     subtitle: "基于汇率、TFP、名义利差与实际利差的交叉比较 (1999-2026)",
-    badge: "V12.1",
+    badge: "V12.2",
     sourceVersion: "FX/TFP Asia Expansion",
     updated: "UPDATED 2026-05-16",
     tabs: { analysis: "深度分析", explorer: "交互沙盘", rawdata: "数据明细" },
@@ -201,13 +212,13 @@ export const copy = {
     h3: "交叉货币对的比较逻辑",
     p3: "每个货币对同时展示汇率、TFP 对数差、名义利差和实际利差。原 V20 的 USDCNY、EURUSD、EURCNY 保持原始口径；新增亚洲序列使用公开数据派生。",
     h4: "数据覆盖说明",
-    p4: "台湾 CPI 已使用 data.gov.tw / 主计总处月度总指数计算；台湾 10Y 国债收益率使用 TPEx 收益率曲线文件的 10 年期限行。1999-2005 因 TPEx 曲线未覆盖仍为空。",
+    p4: "台湾 CPI 已使用 data.gov.tw / 主计总处月度总指数计算；台湾 10Y 国债收益率使用 TPEx 收益率曲线文件的 10 年期限行。1999-2005 因 TPEx 曲线未覆盖仍为空。TFP 对数差保留三位小数，避免小幅变化被四舍五入抹平。",
     divergence: [["汇率：", "USDJPY、USDKRW、USDTWD、USDINR 来自 FRED 年度均值；交叉汇率由三角关系派生。"], ["TFP：", "新增国家/地区使用 Penn World Table 11.0 rtfpna 序列，2024-2026 以 2017-2023 CAGR 外推。"], ["利差：", "名义利差为基准经济体 10Y 减报价经济体 10Y；实际利差为名义利率扣除 CPI 后再相减。"]],
     conclusionTitle: "扩展后的使用方式",
     conclusion: "先选择基准分组，再选择货币对，最后选择汇率/TFP/利差对比模式。",
     auditTitle: "数据来源与审计说明",
     auditHistoricalTitle: "1. 历史口径",
-    auditHistorical: [["FX:", "FRED 日度汇率年度均值，交叉汇率由 USD base 派生。"], ["TFP:", "Penn World Table 11.0 rtfpna。"], ["Rates/CPI:", "FRED OECD / World Bank 序列；台湾 CPI 来自 data.gov.tw / 主计总处，台湾 10Y 来自 TPEx。"]],
+    auditHistorical: [["FX:", "FRED 日度汇率年度均值，交叉汇率由 USD base 派生。"], ["TFP:", "Penn World Table 11.0 rtfpna；EUR TFP 由 V20 EURUSD 对数差和 US rtfpna 推导，用于 EURJPY/EURCNY。"], ["Rates/CPI:", "FRED OECD / World Bank 序列；台湾 CPI 来自 data.gov.tw / 主计总处，台湾 10Y 来自 TPEx。"]],
     auditForecastTitle: "2. 预测/缺口说明",
     auditForecast: [["2024-2026 TFP:", "使用 2017-2023 CAGR 外推。"], ["Taiwan spreads:", "TPEx 10Y 收益率自 2006 年起可用；2026 使用 1-5 月样本，CPI 2026 暂为空。"], ["Existing V20:", "USDCNY、EURUSD、EURCNY 保持原始 V20 数值。"]],
     explorerStep1: "第一步：选择基准分组",
@@ -221,7 +232,7 @@ export const copy = {
   en: {
     title: "Macro Asset Pricing & Asia TFP Dashboard",
     subtitle: "Cross-pair FX, TFP, nominal spread and real spread analysis (1999-2026)",
-    badge: "V12.1",
+    badge: "V12.2",
     sourceVersion: "FX/TFP Asia Expansion",
     updated: "UPDATED 2026-05-16",
     tabs: { analysis: "Deep Analysis", explorer: "Interactive Sandbox", rawdata: "Data Matrix" },
@@ -236,13 +247,13 @@ export const copy = {
     h3: "Cross-Pair Logic",
     p3: "Each pair shows FX, TFP log spread, nominal spread and real spread. Original V20 USDCNY, EURUSD and EURCNY values are preserved; new Asian series use public data.",
     h4: "Coverage Notes",
-    p4: "Taiwan CPI now comes from the data.gov.tw / DGBAS monthly CPI index, and Taiwan 10Y yield uses the 10-year tenor row in TPEx yield-curve files. TPEx curve coverage starts in 2006, so 1999-2005 remain blank.",
+    p4: "Taiwan CPI now comes from the data.gov.tw / DGBAS monthly CPI index, and Taiwan 10Y yield uses the 10-year tenor row in TPEx yield-curve files. TPEx curve coverage starts in 2006, so 1999-2005 remain blank. TFP log spreads now keep three decimals so small moves are not rounded away.",
     divergence: [["FX:", "FRED daily exchange rates averaged by year; cross rates are derived through triangular relationships."], ["TFP:", "Penn World Table 11.0 rtfpna; 2024-2026 extrapolated with 2017-2023 CAGR."], ["Spreads:", "Nominal spread is base 10Y minus quote 10Y; real spread subtracts CPI inflation first."]],
     conclusionTitle: "How to Use the Expanded View",
     conclusion: "Choose a base group, choose a pair, then select FX/spread, TFP/FX, or TFP/real spread mode.",
     auditTitle: "Data Source & Audit",
     auditHistoricalTitle: "1. Historical Coverage",
-    auditHistorical: [["FX:", "FRED daily FX annual averages; cross rates derived from USD base."], ["TFP:", "Penn World Table 11.0 rtfpna."], ["Rates/CPI:", "FRED OECD / World Bank series; Taiwan CPI uses data.gov.tw / DGBAS and Taiwan 10Y uses TPEx."]],
+    auditHistorical: [["FX:", "FRED daily FX annual averages; cross rates derived from USD base."], ["TFP:", "Penn World Table 11.0 rtfpna; EUR TFP is inferred from the V20 EURUSD log gap and US rtfpna for EURJPY/EURCNY."], ["Rates/CPI:", "FRED OECD / World Bank series; Taiwan CPI uses data.gov.tw / DGBAS and Taiwan 10Y uses TPEx."]],
     auditForecastTitle: "2. Forecast / Gap Notes",
     auditForecast: [["2024-2026 TFP:", "Extrapolated with 2017-2023 CAGR."], ["Taiwan spreads:", "TPEx 10Y yields are available from 2006; 2026 uses Jan-May samples, while 2026 CPI remains blank."], ["Existing V20:", "USDCNY, EURUSD and EURCNY keep the original V20 values."]],
     explorerStep1: "Step 1: Select Base Group",
