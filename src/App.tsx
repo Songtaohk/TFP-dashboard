@@ -9,6 +9,7 @@ import {
   groupBaseEconomies,
   groupLabels,
   hasSpreadData,
+  latestRawDataUpdates,
   pairGroups,
   pairLabels,
   years,
@@ -77,6 +78,10 @@ function App() {
   const selectedPair = isPairKey(selection) ? selection : null;
   const selectedEconomy: EconomyKey = selectedPair ? pairLabels[selectedPair].base : (selection as EconomyKey);
   const effectiveTfpMode: TfpMode = selectedPair ? tfpMode : "rtfpna";
+  const currentMonthLabel = useMemo(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${now.getMonth() + 1}`;
+  }, []);
 
   const chartOptions = useMemo(() => {
     const leftAxisText = locale === "zh" ? "左轴" : "Left axis";
@@ -441,6 +446,20 @@ function App() {
                   ))}
                 </ul>
               </article>
+              <article>
+                <h3>{t.latestUpdateTitle}</h3>
+                {latestRawDataUpdates.length === 0 ? (
+                  <p className="latest-update-empty">{t.noLatestUpdates}</p>
+                ) : (
+                  <ul>
+                    {latestRawDataUpdates.map((item) => (
+                      <li key={`${item.date}-${item.scope}-${item.detail}`}>
+                        <strong>{item.date} · {item.scope}:</strong> {item.detail}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </article>
             </div>
           </section>
           <div className="data-title">
@@ -539,7 +558,7 @@ function App() {
       )}
 
       <footer>
-        {t.badge} Academic Edition | Enhanced Visual Readability | {t.updated}
+        {t.footerPrefix}{locale === "zh" ? "" : " "}{currentMonthLabel}
       </footer>
     </div>
   );

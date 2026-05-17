@@ -5,6 +5,11 @@ export type GroupKey = "usd" | "eur" | "jpy" | "cny" | "twd";
 export type ChartMode = "spread" | "tfp-fx" | "tfp-real";
 export type TfpMode = "rtfpna" | "ctfp";
 export type SeriesValue = number | null;
+export type LatestUpdate = {
+  date: string;
+  scope: string;
+  detail: string;
+};
 export type PairSeries = Record<PairKey, SeriesValue[]>;
 export type TfpPairSeries = Record<TfpMode, PairSeries>;
 export type EconomySeries = {
@@ -16,6 +21,8 @@ export type EconomySeries = {
 };
 
 export const years = Array.from({ length: 28 }, (_, index) => (1999 + index).toString());
+
+export const latestRawDataUpdates: LatestUpdate[] = [];
 
 export const pairGroups: Record<GroupKey, PairKey[]> = {
   usd: ["usdcny", "usdjpy", "usdkrw", "usdtwd", "usdinr"],
@@ -276,7 +283,7 @@ export const copy = {
     subtitle: "基于汇率、TFP、名义利差与实际利差的交叉比较 (1999-2026)",
     badge: "V12.4",
     sourceVersion: "Unified Official Data Snapshot",
-    updated: "UPDATED 2026-05-17",
+    footerPrefix: "版权所有，最新更新于",
     tabs: { analysis: "深度分析", explorer: "交互沙盘", rawdata: "数据明细" },
     contact: "联系: songtaozhang@gmail.com",
     analysisIntro: "本看板把 TFP 作为长期供给侧变量，与汇率、名义利差和实际利差并列观察。它不试图解释每一次短期波动，而是提供跨经济体生产率差异、价格变量与利率变量之间的长期比较框架。",
@@ -293,6 +300,8 @@ export const copy = {
     tfpMethodTitle: "TFP 两种口径的差异",
     tfpMethodRows: [["rtfpna:", "PWT constant national prices，页面按 2010 = 1 重基准。适合看单一经济体自身生产率趋势，以及一个货币对两端自 2010 年以来的生产率动量差。"], ["ctfp:", "PWT current PPPs, USA = 1。适合看同一年各经济体在购买力平价口径下的 TFP 水平差异。它不是美元计价，也不是通胀调整标签。"], ["使用提醒:", "货币对图表使用 ln(TFP_A) - ln(TFP_B)，方向与汇率表达一致；单一基准货币图表用于看本经济体 TFP、10Y 与实际利率的历史趋势。"]],
     formulaTitle: "公式",
+    latestUpdateTitle: "最新更新",
+    noLatestUpdates: "无",
     explorerStep1: "第一步：选择基准分组",
     explorerStep2: "第二步：选择货币对",
     modes: { spread: "汇率 vs 名义/实际利差", "tfp-fx": "TFP 对数差 vs 汇率", "tfp-real": "TFP 对数差 vs 实际利差" },
@@ -314,7 +323,7 @@ export const copy = {
     subtitle: "Cross-pair FX, TFP, nominal spread and real spread analysis (1999-2026)",
     badge: "V12.4",
     sourceVersion: "Unified Official Data Snapshot",
-    updated: "UPDATED 2026-05-17",
+    footerPrefix: "All rights reserved. Latest updated",
     tabs: { analysis: "Deep Analysis", explorer: "Interactive Sandbox", rawdata: "Data Matrix" },
     contact: "Contact: songtaozhang@gmail.com",
     analysisIntro: "This dashboard treats TFP as a long-run supply-side variable and compares it with FX, nominal spreads and real spreads. It is designed for structural comparison rather than explaining every short-run market move.",
@@ -331,6 +340,8 @@ export const copy = {
     tfpMethodTitle: "How the Two TFP Measures Differ",
     tfpMethodRows: [["rtfpna:", "PWT constant national prices, rebased in this page to 2010 = 1. Best for an economy's own productivity trend and pair-level productivity momentum since 2010."], ["ctfp:", "PWT current PPPs, USA = 1. Best for cross-country TFP level comparisons in a given year under purchasing-power-parity terms. It is not USD pricing and not an inflation-adjustment label."], ["Usage note:", "Pair charts use ln(TFP_A) - ln(TFP_B), matching the FX quote direction. Single-base charts show the selected economy's TFP, 10Y yield and real-rate history."]],
     formulaTitle: "Formula",
+    latestUpdateTitle: "Latest Update",
+    noLatestUpdates: "None",
     explorerStep1: "Step 1: Select Base Group",
     explorerStep2: "Step 2: Select Currency Pair",
     modes: { spread: "FX vs Nominal / Real Spread", "tfp-fx": "TFP Log Spread vs FX", "tfp-real": "TFP Log Spread vs Real Spread" },
