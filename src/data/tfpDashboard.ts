@@ -1,6 +1,6 @@
 export type Locale = "zh" | "en";
 export type EconomyKey = "us" | "eu" | "cn" | "jp" | "kr" | "tw" | "in";
-export type PairKey = "usdcny" | "usdjpy" | "usdkrw" | "usdtwd" | "usdinr" | "eurusd" | "eurcny" | "eurjpy" | "jpytwd" | "jpykrw" | "cnyjpy" | "cnytwd" | "cnykrw" | "twdkrw";
+export type PairKey = "usdcny" | "usdjpy" | "usdkrw" | "usdtwd" | "usdinr" | "eurusd" | "eurcny" | "eurjpy" | "eurtwd" | "eurkrw" | "eurinr" | "jpytwd" | "jpykrw" | "jpyinr" | "cnyjpy" | "cnytwd" | "cnykrw" | "cnyinr" | "twdkrw" | "twdinr";
 export type GroupKey = "usd" | "eur" | "jpy" | "cny" | "twd";
 export type ChartMode = "spread" | "tfp-fx" | "tfp-real";
 export type TfpMode = "rtfpna" | "ctfp";
@@ -19,10 +19,10 @@ export const years = Array.from({ length: 28 }, (_, index) => (1999 + index).toS
 
 export const pairGroups: Record<GroupKey, PairKey[]> = {
   usd: ["usdcny", "usdjpy", "usdkrw", "usdtwd", "usdinr"],
-  eur: ["eurusd", "eurcny", "eurjpy"],
-  jpy: ["jpytwd", "jpykrw"],
-  cny: ["cnyjpy", "cnytwd", "cnykrw"],
-  twd: ["twdkrw"],
+  eur: ["eurusd", "eurcny", "eurjpy", "eurtwd", "eurkrw", "eurinr"],
+  jpy: ["jpytwd", "jpykrw", "jpyinr"],
+  cny: ["cnyjpy", "cnytwd", "cnykrw", "cnyinr"],
+  twd: ["twdkrw", "twdinr"],
 };
 
 export const groupLabels: Record<GroupKey, { zh: string; en: string }> = {
@@ -60,12 +60,18 @@ export const pairLabels: Record<PairKey, { zh: string; en: string; fx: string; b
   eurusd: { zh: "EUR USD", en: "EUR USD", fx: "EURUSD", base: "eu", quote: "us" },
   eurcny: { zh: "EUR CNY", en: "EUR CNY", fx: "EURCNY", base: "eu", quote: "cn" },
   eurjpy: { zh: "EUR JPY", en: "EUR JPY", fx: "EURJPY", base: "eu", quote: "jp" },
+  eurtwd: { zh: "EUR TWD", en: "EUR TWD", fx: "EURTWD", base: "eu", quote: "tw" },
+  eurkrw: { zh: "EUR KRW", en: "EUR KRW", fx: "EURKRW", base: "eu", quote: "kr" },
+  eurinr: { zh: "EUR INR", en: "EUR INR", fx: "EURINR", base: "eu", quote: "in" },
   jpytwd: { zh: "JPY TWD", en: "JPY TWD", fx: "JPYTWD", base: "jp", quote: "tw" },
   jpykrw: { zh: "JPY KRW", en: "JPY KRW", fx: "JPYKRW", base: "jp", quote: "kr" },
+  jpyinr: { zh: "JPY INR", en: "JPY INR", fx: "JPYINR", base: "jp", quote: "in" },
   cnyjpy: { zh: "CNY JPY", en: "CNY JPY", fx: "CNYJPY", base: "cn", quote: "jp" },
   cnytwd: { zh: "CNY TWD", en: "CNY TWD", fx: "CNYTWD", base: "cn", quote: "tw" },
   cnykrw: { zh: "CNY KRW", en: "CNY KRW", fx: "CNYKRW", base: "cn", quote: "kr" },
+  cnyinr: { zh: "CNY INR", en: "CNY INR", fx: "CNYINR", base: "cn", quote: "in" },
   twdkrw: { zh: "TWD KRW", en: "TWD KRW", fx: "TWDKRW", base: "tw", quote: "kr" },
+  twdinr: { zh: "TWD INR", en: "TWD INR", fx: "TWDINR", base: "tw", quote: "in" },
 };
 
 const v20 = {
@@ -218,12 +224,18 @@ const deriveFx = (pair: PairKey, index: number): SeriesValue => {
   const direct: Partial<Record<PairKey, SeriesValue>> = { usdcny: usdCny, usdjpy: usdJpy, usdkrw: usdKrw, usdtwd: usdTwd, usdinr: usdInr, eurusd: eurUsd, eurcny: eurCny };
   if (direct[pair] !== undefined) return round(direct[pair] ?? null, pair.startsWith("jpy") ? 4 : 2);
   if (pair === "eurjpy") return multiply(eurUsd, usdJpy, 2);
+  if (pair === "eurtwd") return multiply(eurUsd, usdTwd, 2);
+  if (pair === "eurkrw") return multiply(eurUsd, usdKrw, 2);
+  if (pair === "eurinr") return multiply(eurUsd, usdInr, 2);
   if (pair === "jpytwd") return divide(usdTwd, usdJpy, 4);
   if (pair === "jpykrw") return divide(usdKrw, usdJpy, 4);
+  if (pair === "jpyinr") return divide(usdInr, usdJpy, 4);
   if (pair === "cnyjpy") return divide(usdJpy, usdCny, 2);
   if (pair === "cnytwd") return divide(usdTwd, usdCny, 2);
   if (pair === "cnykrw") return divide(usdKrw, usdCny, 2);
+  if (pair === "cnyinr") return divide(usdInr, usdCny, 2);
   if (pair === "twdkrw") return divide(usdKrw, usdTwd, 2);
+  if (pair === "twdinr") return divide(usdInr, usdTwd, 2);
   return null;
 };
 
@@ -276,7 +288,7 @@ export const copy = {
     auditForecastTitle: "2. 预测/缺口说明",
     auditForecast: [["历史快照:", "PWT 11.0 覆盖至 2023；2017-2023 的 rtfpna 与 ctfp 均来自 PWT 11.0 官方数据。2024-2026 为近期外推值。"], ["近期外推:", "TFP 的 2024-2026 使用 2017-2023 CAGR 外推，并在数据表中保留近期标记；后续刷新时应重新抓取 PWT 或权威更新。"], ["CN data:", "CN 10Y 使用 ChinaBond 月度样本年均值；CN CPI 使用 World Bank，不再由 USDCNY 利差反推。"]],
     sourceTitle: "来源与公式",
-    sourceRows: [["汇率:", "USDCNY、EURUSD、USDJPY、USDKRW、USDTWD、USDINR 使用 FRED annual exchange-rate series；EURCNY、EURJPY、JPYTWD、JPYKRW、CNYJPY、CNYTWD、CNYKRW、TWDKRW 由交叉公式派生。"], ["10Y 国债:", "US、EU、JP、KR、IN 使用 FRED/OECD 月度或日度序列的年度均值；CN 使用 ChinaBond 中债国债收益率曲线 10Y 月度样本年均值；TW 使用 TPEx Government Bond & Corporate Bond Yield Curve 的 10Y 月度样本年均值。"], ["CPI:", "US、EU、CN、JP、KR、IN 使用 World Bank FP.CPI.TOTL.ZG；TW 使用 data.gov.tw / 主计总处 CPI 月度总指数计算年度通胀。"], ["TFP:", "rtfpna: PWT constant national prices，页面按 2010 = 1 重基准；ctfp: PWT current PPPs, USA = 1。2017-2023 均来自 PWT 11.0；2024-2026 为 2017-2023 CAGR 外推。US、CN、JP、KR、TW、IN 使用本国/地区序列；EU 使用 Germany 代理。"]],
+    sourceRows: [["汇率:", "USDCNY、EURUSD、USDJPY、USDKRW、USDTWD、USDINR 使用 FRED annual exchange-rate series；其它货币对由 USD base 交叉公式派生，包括 EURCNY、EURJPY、EURTWD、EURKRW、EURINR、JPYTWD、JPYKRW、JPYINR、CNYJPY、CNYTWD、CNYKRW、CNYINR、TWDKRW、TWDINR。"], ["10Y 国债:", "US、EU、JP、KR、IN 使用 FRED/OECD 月度或日度序列的年度均值；CN 使用 ChinaBond 中债国债收益率曲线 10Y 月度样本年均值；TW 使用 TPEx Government Bond & Corporate Bond Yield Curve 的 10Y 月度样本年均值。"], ["CPI:", "US、EU、CN、JP、KR、IN 使用 World Bank FP.CPI.TOTL.ZG；TW 使用 data.gov.tw / 主计总处 CPI 月度总指数计算年度通胀。"], ["TFP:", "rtfpna: PWT constant national prices，页面按 2010 = 1 重基准；ctfp: PWT current PPPs, USA = 1。2017-2023 均来自 PWT 11.0；2024-2026 为 2017-2023 CAGR 外推。US、CN、JP、KR、TW、IN 使用本国/地区序列；EU 使用 Germany 代理。"]],
     formulaRows: [["实际利率:", "实际利率为 CPI-adjusted rate：Real Rate_A = 10Y_A - CPI_A。"], ["名义利差:", "Nominal Spread_A/B = 10Y_A - 10Y_B。"], ["实际利差:", "Real Spread_A/B = (10Y_A - CPI_A) - (10Y_B - CPI_B)。"], ["TFP 对数差:", "TFP Log Spread_A/B = ln(TFP_A) - ln(TFP_B)。"]],
     tfpMethodTitle: "TFP 两种口径的差异",
     tfpMethodRows: [["rtfpna:", "PWT constant national prices，页面按 2010 = 1 重基准。适合看单一经济体自身生产率趋势，以及一个货币对两端自 2010 年以来的生产率动量差。"], ["ctfp:", "PWT current PPPs, USA = 1。适合看同一年各经济体在购买力平价口径下的 TFP 水平差异。它不是美元计价，也不是通胀调整标签。"], ["使用提醒:", "货币对图表使用 ln(TFP_A) - ln(TFP_B)，方向与汇率表达一致；单一基准货币图表用于看本经济体 TFP、10Y 与实际利率的历史趋势。"]],
@@ -298,7 +310,7 @@ export const copy = {
     missingSpread: "该货币对缺少完整利差数据，利差曲线留空。",
   },
   en: {
-    title: "Long-Run Links Between US-Europe-Asia TFP, FX and Rates",
+    title: "Long-term correlation in TFP & FX/ Rates (US, EU & NEA)",
     subtitle: "Cross-pair FX, TFP, nominal spread and real spread analysis (1999-2026)",
     badge: "V12.4",
     sourceVersion: "Unified Official Data Snapshot",
@@ -314,7 +326,7 @@ export const copy = {
     auditForecastTitle: "2. Forecast / Gap Notes",
     auditForecast: [["Historical snapshot:", "PWT 11.0 runs through 2023; 2017-2023 rtfpna and ctfp values are from official PWT 11.0 data. 2024-2026 are recent extrapolations."], ["Recent extrapolation:", "TFP values for 2024-2026 use the 2017-2023 CAGR and remain marked as recent; future refreshes should recheck PWT or another authoritative release."], ["CN data:", "CN 10Y uses ChinaBond monthly samples; CN CPI uses World Bank, not inferred USDCNY spreads."]],
     sourceTitle: "Sources & Formulas",
-    sourceRows: [["FX:", "USDCNY, EURUSD, USDJPY, USDKRW, USDTWD and USDINR use FRED annual exchange-rate series; EURCNY, EURJPY, JPYTWD, JPYKRW, CNYJPY, CNYTWD, CNYKRW and TWDKRW are derived by cross-rate formulas."], ["10Y bonds:", "US, EU, JP, KR and IN use FRED/OECD annual averages; CN uses ChinaBond 10Y government yield-curve monthly samples; TW uses TPEx Government Bond & Corporate Bond Yield Curve 10Y monthly samples."], ["CPI:", "US, EU, CN, JP, KR and IN use World Bank FP.CPI.TOTL.ZG; TW uses data.gov.tw / DGBAS monthly CPI index annual inflation."], ["TFP:", "rtfpna: PWT constant national prices, rebased in the page to 2010 = 1; ctfp: PWT current PPPs, USA = 1. 2017-2023 values are from PWT 11.0; 2024-2026 use 2017-2023 CAGR extrapolation. US, CN, JP, KR, TW and IN use their own series; EU uses Germany as proxy."]],
+    sourceRows: [["FX:", "USDCNY, EURUSD, USDJPY, USDKRW, USDTWD and USDINR use FRED annual exchange-rate series; other pairs are derived through USD-base cross-rate formulas, including EURCNY, EURJPY, EURTWD, EURKRW, EURINR, JPYTWD, JPYKRW, JPYINR, CNYJPY, CNYTWD, CNYKRW, CNYINR, TWDKRW and TWDINR."], ["10Y bonds:", "US, EU, JP, KR and IN use FRED/OECD annual averages; CN uses ChinaBond 10Y government yield-curve monthly samples; TW uses TPEx Government Bond & Corporate Bond Yield Curve 10Y monthly samples."], ["CPI:", "US, EU, CN, JP, KR and IN use World Bank FP.CPI.TOTL.ZG; TW uses data.gov.tw / DGBAS monthly CPI index annual inflation."], ["TFP:", "rtfpna: PWT constant national prices, rebased in the page to 2010 = 1; ctfp: PWT current PPPs, USA = 1. 2017-2023 values are from PWT 11.0; 2024-2026 use 2017-2023 CAGR extrapolation. US, CN, JP, KR, TW and IN use their own series; EU uses Germany as proxy."]],
     formulaRows: [["Real rate:", "Real rate is CPI-adjusted rate: Real Rate_A = 10Y_A - CPI_A."], ["Nominal spread:", "Nominal Spread_A/B = 10Y_A - 10Y_B."], ["Real spread:", "Real Spread_A/B = (10Y_A - CPI_A) - (10Y_B - CPI_B)."], ["TFP log spread:", "TFP Log Spread_A/B = ln(TFP_A) - ln(TFP_B)."]],
     tfpMethodTitle: "How the Two TFP Measures Differ",
     tfpMethodRows: [["rtfpna:", "PWT constant national prices, rebased in this page to 2010 = 1. Best for an economy's own productivity trend and pair-level productivity momentum since 2010."], ["ctfp:", "PWT current PPPs, USA = 1. Best for cross-country TFP level comparisons in a given year under purchasing-power-parity terms. It is not USD pricing and not an inflation-adjustment label."], ["Usage note:", "Pair charts use ln(TFP_A) - ln(TFP_B), matching the FX quote direction. Single-base charts show the selected economy's TFP, 10Y yield and real-rate history."]],

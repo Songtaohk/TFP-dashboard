@@ -76,6 +76,7 @@ function App() {
   const t = copy[locale];
   const selectedPair = isPairKey(selection) ? selection : null;
   const selectedEconomy: EconomyKey = selectedPair ? pairLabels[selectedPair].base : (selection as EconomyKey);
+  const effectiveTfpMode: TfpMode = selectedPair ? tfpMode : "rtfpna";
 
   const chartOptions = useMemo(() => {
     const leftAxisText = locale === "zh" ? "左轴" : "Left axis";
@@ -83,8 +84,8 @@ function App() {
     const axisName = (side: string, label: string) => `${side}: ${label}`;
     const seriesName = (side: string, label: string) => `${side} · ${label}`;
     const datasets: ChartDataset[] = [];
-    const tfpLabel = `${t.labels.tfp} (${t.tfpModes[tfpMode]})`;
-    const leftAxisLabel = selectedPair ? (chartMode === "tfp-real" ? tfpLabel : pairLabels[selectedPair].fx) : t.tfpModes[tfpMode];
+    const tfpLabel = `${t.labels.tfp} (${t.tfpModes[effectiveTfpMode]})`;
+    const leftAxisLabel = selectedPair ? (chartMode === "tfp-real" ? tfpLabel : pairLabels[selectedPair].fx) : t.tfpModes.rtfpna;
     const rightAxisLabel = selectedPair
       ? chartMode === "spread"
         ? `${t.labels.nominal} / ${t.labels.real}`
@@ -101,7 +102,7 @@ function App() {
 
     if (!selectedPair) {
       datasets.push(
-        { name: seriesName(leftAxisText, t.tfpModes[tfpMode]), data: economyData[selectedEconomy][tfpMode], yAxisIndex: 0, color: "#3b82f6" },
+        { name: seriesName(leftAxisText, t.tfpModes.rtfpna), data: economyData[selectedEconomy].rtfpna, yAxisIndex: 0, color: "#3b82f6" },
         { name: seriesName(rightAxisText, t.labels.nominalRate), data: economyData[selectedEconomy].nominal10y, yAxisIndex: 1, color: "#f59e0b", lineStyle: { type: "dashed" } },
         { name: seriesName(rightAxisText, t.labels.realRate), data: economyData[selectedEconomy].realRate, yAxisIndex: 1, color: "#fb7185" },
       );
@@ -118,13 +119,13 @@ function App() {
     if (selectedPair && chartMode === "tfp-fx") {
       datasets.push(
         { name: seriesName(leftAxisText, pairLabels[selectedPair].fx), data: dashboardData.fx[selectedPair], yAxisIndex: 0, color: "#10b981", isFx: true },
-        { name: seriesName(rightAxisText, tfpLabel), data: dashboardData.tfp[tfpMode][selectedPair], yAxisIndex: 1, color: "#3b82f6" },
+        { name: seriesName(rightAxisText, tfpLabel), data: dashboardData.tfp[effectiveTfpMode][selectedPair], yAxisIndex: 1, color: "#3b82f6" },
       );
     }
 
     if (selectedPair && chartMode === "tfp-real") {
       datasets.push(
-        { name: seriesName(leftAxisText, tfpLabel), data: dashboardData.tfp[tfpMode][selectedPair], yAxisIndex: 0, color: "#3b82f6" },
+        { name: seriesName(leftAxisText, tfpLabel), data: dashboardData.tfp[effectiveTfpMode][selectedPair], yAxisIndex: 0, color: "#3b82f6" },
         { name: seriesName(rightAxisText, t.labels.real), data: dashboardData.realSpread[selectedPair], yAxisIndex: 1, color: "#fb7185" },
       );
     }
@@ -157,7 +158,7 @@ function App() {
         lineStyle: { width: item.isFx ? 4 : 3, ...item.lineStyle },
       })),
     };
-  }, [chartMode, locale, selectedEconomy, selectedPair, t.labels.nominal, t.labels.nominalRate, t.labels.real, t.labels.realRate, t.labels.tfp, t.tfpModes, tfpMode]);
+  }, [chartMode, effectiveTfpMode, locale, selectedEconomy, selectedPair, t.labels.nominal, t.labels.nominalRate, t.labels.real, t.labels.realRate, t.labels.tfp, t.tfpModes]);
 
   useEffect(() => {
     if (activeTab !== "explorer" || !chartRef.current) {
@@ -264,7 +265,7 @@ function App() {
         <div className="title-block">
             <p className="eyebrow">Global Productivity & FX Valuation · {t.sourceVersion}</p>
           <h1>
-            {t.title} <span>{t.badge}</span>
+            {t.title}
           </h1>
           <p className="subtitle">{t.subtitle}</p>
         </div>
@@ -358,16 +359,23 @@ function App() {
                 ))}
               </div>
             )}
-            <div className="mode-group">
-              <span>{t.tfpModeTitle}</span>
-              {(Object.keys(t.tfpModes) as TfpMode[]).map((mode) => (
-                <label className="radio-card" key={mode}>
-                  <input type="radio" name="tfp-mode" value={mode} checked={tfpMode === mode} onChange={() => setTfpMode(mode)} />
-                  <span>{t.tfpModes[mode]}</span>
-                </label>
-              ))}
-            </div>
-            <p className="data-note">{t.tfpModeNote}</p>
+            {selectedPair ? (
+              <div className="mode-group">
+                <span>{t.tfpModeTitle}</span>
+                {(Object.keys(t.tfpModes) as TfpMode[]).map((mode) => (
+                  <label className="radio-card" key={mode}>
+                    <input type="radio" name="tfp-mode" value={mode} checked={tfpMode === mode} onChange={() => setTfpMode(mode)} />
+                    <span>{t.tfpModes[mode]}</span>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <div className="mode-group">
+                <span>{t.tfpModeTitle}</span>
+                <div className="static-mode">{t.tfpModes.rtfpna}</div>
+              </div>
+            )}
+            {selectedPair && <p className="data-note">{t.tfpModeNote}</p>}
             {selectedPair && !hasSpreadData(selectedPair) && <p className="data-note">{t.missingSpread}</p>}
           </aside>
           <section className="chart-panel" aria-label={t.tabs.explorer}>

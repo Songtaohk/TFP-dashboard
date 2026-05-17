@@ -45,4 +45,4 @@ npm run build
 - 2024 年及以前作为历史快照保存；2025-2026 作为近期可刷新/可修订数据。USDCNY、EURUSD、EURCNY 已统一改用 FRED 年度汇率口径，CN 10Y/CPI 不再使用反推法，EU TFP 使用 Germany 代理。
 - TFP 可在两套 PWT 口径间切换：`rtfpna` 使用 constant national prices 并在页面内重基准为 2010 = 1；`ctfp` 使用 current PPPs, USA = 1。2017-2023 使用 PWT 11.0 官方数据，2024-2026 使用 2017-2023 CAGR 外推。
 - 实际利率在“数据明细”的公式区说明为 CPI-adjusted rate：`10Y - CPI inflation`；实际利差为两个经济体实际利率之差。
-- 已新增 `TWDKRW` 交叉比较，汇率由 `USDKRW / USDTWD` 派生。
+- 已新增多组交叉比较：`TWDKRW`、`TWDINR`、`CNYINR`、`JPYINR`、`EURTWD`、`EURKRW`、`EURINR`，汇率由 USD base 交叉公式派生。

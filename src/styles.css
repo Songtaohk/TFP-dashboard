@@ -45,14 +45,15 @@ p {
 }
 
 .dashboard-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(520px, 1fr) minmax(520px, 0.9fr);
   align-items: center;
-  justify-content: space-between;
   gap: 32px;
   margin-bottom: 44px;
 }
 
 .title-block {
+  max-width: 860px;
   padding-left: 24px;
   border-left: 4px solid #10b981;
 }
@@ -69,10 +70,10 @@ p {
 h1 {
   margin-bottom: 10px;
   color: #fff;
-  font-size: clamp(2rem, 3.6vw, 4rem);
+  font-size: clamp(2rem, 3.15vw, 3.55rem);
   font-weight: 900;
   letter-spacing: 0;
-  line-height: 1.02;
+  line-height: 1.08;
 }
 
 h1 span {
@@ -87,9 +88,11 @@ h1 span {
 
 .header-actions {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 18px;
-  flex: 0 0 auto;
+  min-width: 0;
 }
 
 .locale-switch button,
@@ -155,6 +158,8 @@ h1 span {
   display: grid;
   grid-template-columns: repeat(3, minmax(118px, 1fr));
   gap: 6px;
+  flex: 1 1 100%;
+  width: 100%;
   padding: 6px;
   border: 1px solid #334155;
   border-radius: 16px;
@@ -183,11 +188,13 @@ h1 span {
 
 .analysis-overview {
   display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
   gap: 32px;
+  align-items: start;
 }
 
 .analysis-lead {
-  max-width: 980px;
+  grid-column: 1 / -1;
   margin-bottom: 0;
   color: #e2e8f0;
   font-size: clamp(1.05rem, 1.35vw, 1.28rem);
@@ -196,6 +203,7 @@ h1 span {
 
 .analysis-section-grid {
   display: grid;
+  grid-column: 1 / -1;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
 }
@@ -271,6 +279,7 @@ h1 span {
 
 .tfp-card-grid {
   display: grid;
+  grid-column: 1 / -1;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
 }
@@ -402,6 +411,18 @@ select:focus {
   color: #cbd5e1;
   font-size: 0.95rem;
   font-weight: 700;
+}
+
+.static-mode {
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid rgba(16, 185, 129, 0.32);
+  border-radius: 16px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #d1fae5;
+  font-weight: 900;
 }
 
 .data-note {
@@ -622,6 +643,7 @@ footer {
 @media (max-width: 1080px) {
   .dashboard-header,
   .header-actions {
+    display: flex;
     align-items: stretch;
     flex-direction: column;
   }
@@ -632,6 +654,7 @@ footer {
 
   .analysis-section-grid,
   .tfp-card-grid,
+  .analysis-overview,
   .explorer-panel,
   .audit-grid,
   .source-grid {

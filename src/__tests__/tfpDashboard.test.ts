@@ -38,11 +38,22 @@ describe("TFP dashboard data", () => {
 
   it("keeps EUR cross-pair TFP comparisons visible", () => {
     expect(dashboardData.tfp.rtfpna.eurjpy.some((value) => value !== null)).toBe(true);
+    expect(dashboardData.tfp.rtfpna.eurtwd.some((value) => value !== null)).toBe(true);
+    expect(dashboardData.tfp.rtfpna.eurkrw.some((value) => value !== null)).toBe(true);
+    expect(dashboardData.tfp.rtfpna.eurinr.some((value) => value !== null)).toBe(true);
     expect(dashboardData.tfp.ctfp.eurjpy.some((value) => value !== null)).toBe(true);
     expect(dashboardData.tfp.rtfpna.eurcny.slice(-4).every((value) => value !== null)).toBe(true);
     expect(dashboardData.tfp.ctfp.eurcny.slice(-4).every((value) => value !== null)).toBe(true);
     expect(new Set(dashboardData.tfp.rtfpna.eurcny.slice(-4)).size).toBeGreaterThan(1);
     expect(new Set(dashboardData.tfp.ctfp.eurcny.slice(-4)).size).toBeGreaterThan(1);
+  });
+
+  it("includes the added INR cross pairs", () => {
+    for (const pair of ["cnyinr", "jpyinr", "twdinr"] as PairKey[]) {
+      expect(dashboardData.fx[pair].some((value) => value !== null)).toBe(true);
+      expect(dashboardData.tfp.rtfpna[pair].some((value) => value !== null)).toBe(true);
+      expect(dashboardData.nomSpread[pair].some((value) => value !== null)).toBe(true);
+    }
   });
 
   it("keeps rtfpna and ctfp as distinct TFP measures", () => {
