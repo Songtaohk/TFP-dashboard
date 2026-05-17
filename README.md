@@ -32,14 +32,22 @@ npm run build
 npm run data:refresh
 ```
 
-默认读取 `data/recent-official-updates.json`。你可以把已核实的官方新值写进这个文件，然后运行上面的命令；脚本会把数据写入 `src/data/tfpDashboard.ts`，并自动更新所有派生的 TFP log spread、名义利差、实际利差。
+脚本会先自动尝试抓取可程序化访问的官方来源，再读取 `data/recent-official-updates.json` 作为人工补充清单。写入 `src/data/tfpDashboard.ts` 后，页面会自动重新计算所有派生的 TFP log spread、名义利差、实际利差。
+
+当前自动抓取范围：
+
+- FRED：2025 年及以后的 `USDCNY`、`EURUSD`、`USDJPY`、`USDKRW`、`USDTWD`、`USDINR` 年度均值。
+- FRED：2025 年及以后的 US、EU、JP、KR、IN 10Y 年度均值。
+- World Bank：2025 年及以后的 US、EU、CN、JP、KR、IN CPI 年度通胀。
+- PWT：每次检查官方 PWT 页面是否出现更新版本或更晚覆盖年份；当前脚本会提示新版本，但还不会自动解析 PWT Excel/Stata 文件写入 TFP。
+- CN 10Y、TW CPI、TW 10Y 暂未全自动抓取；如果官方站点接口稳定后，可继续接入。
 
 每月自动刷新：
 
 - GitHub Actions 已配置 `.github/workflows/monthly-data-refresh.yml`，每月 5 日 02:00 UTC 自动运行一次。
 - 也可以在 GitHub 仓库的 `Actions` 页面选择 `Monthly Data Refresh`，点击 `Run workflow` 手动运行。
 - 如果脚本写入了新数据，工作流会自动提交 `src/data/tfpDashboard.ts`；Vercel 随后会按 GitHub 新提交自动部署。
-- 当前脚本只会处理输入文件中已经列出的官方新值；真正自动上网抓取 PWT/FRED/World Bank/TPEx 等来源，需要继续补各来源的抓取模块或 API key。
+- 当前脚本已经自动抓取 FRED 和 World Bank 的部分官方序列；PWT、CN 10Y、TW CPI、TW 10Y 仍需继续补专门解析模块或稳定接口。
 
 更新规则：
 
