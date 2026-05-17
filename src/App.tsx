@@ -1,18 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as echarts from "echarts";
-import { BarChart3, BookOpen, Languages, LineChart, Table2 } from "lucide-react";
+import { BarChart3, BookOpen, Download, LineChart, Mail, Table2 } from "lucide-react";
 import {
   copy,
   dashboardData,
+  economyData,
+  economyLabels,
+  groupBaseEconomies,
   groupLabels,
   hasSpreadData,
   pairGroups,
   pairLabels,
   years,
   type ChartMode,
+  type EconomyKey,
   type GroupKey,
   type Locale,
   type PairKey,
+  type TfpMode,
 } from "./data/tfpDashboard";
 
 type TabId = "analysis" | "explorer" | "rawdata";
@@ -24,6 +29,12 @@ type ChartDataset = {
   lineStyle?: { type: "dashed" };
   isFx?: boolean;
 };
+type SelectionKey = PairKey | EconomyKey;
+
+const pairKeySet = new Set<string>(Object.keys(pairLabels));
+const economyKeys = Object.keys(economyLabels) as EconomyKey[];
+const allPairKeys = Object.values(pairGroups).flat() as PairKey[];
+const isPairKey = (value: SelectionKey): value is PairKey => pairKeySet.has(value);
 
 const getAxisBounds = (values: Array<number | null>) => {
   const finiteValues = values.filter((value): value is number => value !== null && Number.isFinite(value));
@@ -55,11 +66,16 @@ function App() {
   const [locale, setLocale] = useState<Locale>("zh");
   const [activeTab, setActiveTab] = useState<TabId>("analysis");
   const [group, setGroup] = useState<GroupKey>("usd");
-  const [pair, setPair] = useState<PairKey>("usdcny");
+  const [selection, setSelection] = useState<SelectionKey>("us");
   const [chartMode, setChartMode] = useState<ChartMode>("spread");
+  const [tfpMode, setTfpMode] = useState<TfpMode>("rtfpna");
+  const [rawEconomy, setRawEconomy] = useState<EconomyKey>("us");
+  const [rawPair, setRawPair] = useState<PairKey>("usdcny");
   const chartRef = useRef<HTMLDivElement | null>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
   const t = copy[locale];
+  const selectedPair = isPairKey(selection) ? selection : null;
+  const selectedEconomy: EconomyKey = selectedPair ? pairLabels[selectedPair].base : (selection as EconomyKey);
 
   const chartOptions = useMemo(() => {
     const leftAxisText = locale === "zh" ? "左轴" : "Left axis";
@@ -67,13 +83,15 @@ function App() {
     const axisName = (side: string, label: string) => `${side}: ${label}`;
     const seriesName = (side: string, label: string) => `${side} · ${label}`;
     const datasets: ChartDataset[] = [];
-    const leftAxisLabel = chartMode === "tfp-real" ? t.labels.tfp : pairLabels[pair].fx;
-    const rightAxisLabel =
-      chartMode === "spread"
+    const tfpLabel = `${t.labels.tfp} (${t.tfpModes[tfpMode]})`;
+    const leftAxisLabel = selectedPair ? (chartMode === "tfp-real" ? tfpLabel : pairLabels[selectedPair].fx) : t.tfpModes[tfpMode];
+    const rightAxisLabel = selectedPair
+      ? chartMode === "spread"
         ? `${t.labels.nominal} / ${t.labels.real}`
         : chartMode === "tfp-fx"
-          ? t.labels.tfp
-          : t.labels.real;
+          ? tfpLabel
+          : t.labels.real
+      : `${t.labels.nominalRate} / ${t.labels.realRate}`;
     const axis = {
       type: "value",
       nameTextStyle: { color: "#cbd5e1", fontWeight: 700, padding: [0, 0, 6, 0] },
@@ -81,25 +99,33 @@ function App() {
       axisLabel: { color: "#94a3b8" },
     };
 
-    if (chartMode === "spread") {
+    if (!selectedPair) {
       datasets.push(
-        { name: seriesName(leftAxisText, pairLabels[pair].fx), data: dashboardData.fx[pair], yAxisIndex: 0, color: "#10b981", isFx: true },
-        { name: seriesName(rightAxisText, t.labels.nominal), data: dashboardData.nomSpread[pair], yAxisIndex: 1, color: "#f59e0b", lineStyle: { type: "dashed" } },
-        { name: seriesName(rightAxisText, t.labels.real), data: dashboardData.realSpread[pair], yAxisIndex: 1, color: "#fb7185" },
+        { name: seriesName(leftAxisText, t.tfpModes[tfpMode]), data: economyData[selectedEconomy][tfpMode], yAxisIndex: 0, color: "#3b82f6" },
+        { name: seriesName(rightAxisText, t.labels.nominalRate), data: economyData[selectedEconomy].nominal10y, yAxisIndex: 1, color: "#f59e0b", lineStyle: { type: "dashed" } },
+        { name: seriesName(rightAxisText, t.labels.realRate), data: economyData[selectedEconomy].realRate, yAxisIndex: 1, color: "#fb7185" },
       );
     }
 
-    if (chartMode === "tfp-fx") {
+    if (selectedPair && chartMode === "spread") {
       datasets.push(
-        { name: seriesName(leftAxisText, pairLabels[pair].fx), data: dashboardData.fx[pair], yAxisIndex: 0, color: "#10b981", isFx: true },
-        { name: seriesName(rightAxisText, t.labels.tfp), data: dashboardData.tfp[pair], yAxisIndex: 1, color: "#3b82f6" },
+        { name: seriesName(leftAxisText, pairLabels[selectedPair].fx), data: dashboardData.fx[selectedPair], yAxisIndex: 0, color: "#10b981", isFx: true },
+        { name: seriesName(rightAxisText, t.labels.nominal), data: dashboardData.nomSpread[selectedPair], yAxisIndex: 1, color: "#f59e0b", lineStyle: { type: "dashed" } },
+        { name: seriesName(rightAxisText, t.labels.real), data: dashboardData.realSpread[selectedPair], yAxisIndex: 1, color: "#fb7185" },
       );
     }
 
-    if (chartMode === "tfp-real") {
+    if (selectedPair && chartMode === "tfp-fx") {
       datasets.push(
-        { name: seriesName(leftAxisText, t.labels.tfp), data: dashboardData.tfp[pair], yAxisIndex: 0, color: "#3b82f6" },
-        { name: seriesName(rightAxisText, t.labels.real), data: dashboardData.realSpread[pair], yAxisIndex: 1, color: "#fb7185" },
+        { name: seriesName(leftAxisText, pairLabels[selectedPair].fx), data: dashboardData.fx[selectedPair], yAxisIndex: 0, color: "#10b981", isFx: true },
+        { name: seriesName(rightAxisText, tfpLabel), data: dashboardData.tfp[tfpMode][selectedPair], yAxisIndex: 1, color: "#3b82f6" },
+      );
+    }
+
+    if (selectedPair && chartMode === "tfp-real") {
+      datasets.push(
+        { name: seriesName(leftAxisText, tfpLabel), data: dashboardData.tfp[tfpMode][selectedPair], yAxisIndex: 0, color: "#3b82f6" },
+        { name: seriesName(rightAxisText, t.labels.real), data: dashboardData.realSpread[selectedPair], yAxisIndex: 1, color: "#fb7185" },
       );
     }
 
@@ -131,7 +157,7 @@ function App() {
         lineStyle: { width: item.isFx ? 4 : 3, ...item.lineStyle },
       })),
     };
-  }, [chartMode, locale, pair, t.labels.nominal, t.labels.real, t.labels.tfp]);
+  }, [chartMode, locale, selectedEconomy, selectedPair, t.labels.nominal, t.labels.nominalRate, t.labels.real, t.labels.realRate, t.labels.tfp, t.tfpModes, tfpMode]);
 
   useEffect(() => {
     if (activeTab !== "explorer" || !chartRef.current) {
@@ -157,20 +183,79 @@ function App() {
     }
   }, [activeTab, chartOptions]);
 
-  const tableRows = (Object.values(pairGroups).flat() as PairKey[]).flatMap((pairKey) =>
-    years.map((year, index) => ({
-      pair: pairKey,
+  const tableRows = years.map((year, index) => ({
+      pair: rawPair,
       year,
-      fx: dashboardData.fx[pairKey][index],
-      tfp: dashboardData.tfp[pairKey][index],
-      nominal: dashboardData.nomSpread[pairKey][index],
-      real: dashboardData.realSpread[pairKey][index],
-    })),
-  );
+      fx: dashboardData.fx[rawPair][index],
+      tfpRtfpna: dashboardData.tfp.rtfpna[rawPair][index],
+      tfpCtfp: dashboardData.tfp.ctfp[rawPair][index],
+      nominal: dashboardData.nomSpread[rawPair][index],
+      real: dashboardData.realSpread[rawPair][index],
+    }));
+  const economyRows = years.map((year, index) => ({
+      economy: rawEconomy,
+      year,
+      rtfpna: economyData[rawEconomy].rtfpna[index],
+      ctfp: economyData[rawEconomy].ctfp[index],
+      cpi: economyData[rawEconomy].cpi[index],
+      nominal10y: economyData[rawEconomy].nominal10y[index],
+      realRate: economyData[rawEconomy].realRate[index],
+    }));
+
+  const handleExportExcel = () => {
+    const format = (value: number | null) => (value === null ? "" : String(value));
+    const table = (title: string, headers: string[], rows: Array<Array<string | number | null>>) => `
+      <h2>${title}</h2>
+      <table border="1">
+        <thead><tr>${headers.map((header) => `<th>${header}</th>`).join("")}</tr></thead>
+        <tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${cell ?? ""}</td>`).join("")}</tr>`).join("")}</tbody>
+      </table>
+    `;
+    const pairRows = allPairKeys.flatMap((pairKey) =>
+      years.map((year, index) => [
+        year,
+        pairLabels[pairKey].fx,
+        format(dashboardData.fx[pairKey][index]),
+        format(dashboardData.tfp.rtfpna[pairKey][index]),
+        format(dashboardData.tfp.ctfp[pairKey][index]),
+        format(dashboardData.nomSpread[pairKey][index]),
+        format(dashboardData.realSpread[pairKey][index]),
+      ]),
+    );
+    const rawRows = economyKeys.flatMap((economy) =>
+      years.map((year, index) => [
+        year,
+        economyLabels[economy].currency,
+        format(economyData[economy].rtfpna[index]),
+        format(economyData[economy].ctfp[index]),
+        format(economyData[economy].cpi[index]),
+        format(economyData[economy].nominal10y[index]),
+        format(economyData[economy].realRate[index]),
+      ]),
+    );
+    const html = `
+      <html>
+        <head><meta charset="utf-8" /></head>
+        <body>
+          ${table(t.pairTable, ["Year", "Pair", "FX", "TFP rtfpna spread", "TFP ctfp spread", "Nominal Spread", "Real Spread"], pairRows)}
+          ${table(t.economyTable, ["Year", "Economy", "RTFPNA 2010=1", "CTFP USA=1", "CPI", "10Y", "Real Rate"], rawRows)}
+        </body>
+      </html>
+    `;
+    const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "tfp-dashboard-data.xls";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
 
   const onGroupChange = (nextGroup: GroupKey) => {
     setGroup(nextGroup);
-    setPair(pairGroups[nextGroup][0]);
+    setSelection(groupBaseEconomies[nextGroup]);
   };
 
   return (
@@ -184,10 +269,18 @@ function App() {
           <p className="subtitle">{t.subtitle}</p>
         </div>
         <div className="header-actions">
-          <button className="language-button" type="button" onClick={() => setLocale(locale === "zh" ? "en" : "zh")}>
-            <Languages size={17} />
-            English / 中文
-          </button>
+          <div className="locale-switch" aria-label="Language">
+            <button className={locale === "zh" ? "active" : ""} type="button" onClick={() => setLocale("zh")}>
+              中文
+            </button>
+            <button className={locale === "en" ? "active" : ""} type="button" onClick={() => setLocale("en")}>
+              EN
+            </button>
+          </div>
+          <a className="contact-link" href="mailto:songtaozhang@gmail.com">
+            <Mail size={16} />
+            {t.contact}
+          </a>
           <nav className="tabs" aria-label="Dashboard sections">
             {[
               ["analysis", BookOpen, t.tabs.analysis],
@@ -205,61 +298,26 @@ function App() {
 
       {activeTab === "analysis" && (
         <main className="analysis-panel">
-          <section className="analysis-grid">
-            <div className="analysis-column">
-              <h2 className="section-heading emerald">{t.analysisTitle}</h2>
-              <article className="essay-block">
-                <h3>
-                  <span>01</span>
-                  {t.h1}
-                </h3>
-                <p>{t.p1}</p>
-                <p className="emphasis">{t.p1b}</p>
-              </article>
-              <article className="essay-block">
-                <h3>
-                  <span>02</span>
-                  {t.h2}
-                </h3>
-                <p>{t.p2}</p>
-                <div className="logic-grid">
-                  {t.adjustments.map(([title, body]) => (
-                    <div className="logic-card" key={title}>
-                      <h4>{title}</h4>
-                      <p>{body}</p>
-                    </div>
-                  ))}
-                </div>
-              </article>
+          <section className="analysis-overview">
+            <p className="analysis-lead">{t.analysisIntro}</p>
+            <div className="analysis-section-grid">
+              {t.analysisSections.map(([number, title, body]) => (
+                <article className="essay-block" key={number}>
+                  <h3>
+                    <span>{number}</span>
+                    {title}
+                  </h3>
+                  <p>{body}</p>
+                </article>
+              ))}
             </div>
-
-            <div className="analysis-column">
-              <h2 className="section-heading sky">{t.resultTitle}</h2>
-              <article className="essay-block">
-                <h3>
-                  <span className="sky-text">03</span>
-                  {t.h3}
-                </h3>
-                <p>{t.p3}</p>
-              </article>
-              <article className="logic-card divergence-card">
-                <h3>
-                  <span className="sky-text">04</span>
-                  {t.h4}
-                </h3>
-                <p>{t.p4}</p>
-                <ul>
-                  {t.divergence.map(([title, body]) => (
-                    <li key={title}>
-                      <strong>{title}</strong> {body}
-                    </li>
-                  ))}
-                </ul>
-              </article>
-              <article className="conclusion-card">
-                <h3>{t.conclusionTitle}</h3>
-                <p>{t.conclusion}</p>
-              </article>
+            <div className="tfp-card-grid">
+              {t.tfpCards.map(([title, body]) => (
+                <article className="logic-card" key={title}>
+                  <h4>{title}</h4>
+                  <p>{body}</p>
+                </article>
+              ))}
             </div>
           </section>
         </main>
@@ -280,7 +338,8 @@ function App() {
             </label>
             <label>
               <span>{t.explorerStep2}</span>
-              <select value={pair} onChange={(event) => setPair(event.target.value as PairKey)}>
+              <select value={selection} onChange={(event) => setSelection(event.target.value as SelectionKey)}>
+                <option value={groupBaseEconomies[group]}>{economyLabels[groupBaseEconomies[group]][locale]}</option>
                 {pairGroups[group].map((key) => (
                   <option key={key} value={key}>
                     {pairLabels[key][locale]}
@@ -288,16 +347,28 @@ function App() {
                 ))}
               </select>
             </label>
+            {selectedPair && (
+              <div className="mode-group">
+                <span>{pairLabels[selectedPair].fx}</span>
+                {(Object.keys(t.modes) as ChartMode[]).map((mode) => (
+                  <label className="radio-card" key={mode}>
+                    <input type="radio" name="chart-mode" value={mode} checked={chartMode === mode} onChange={() => setChartMode(mode)} />
+                    <span>{t.modes[mode]}</span>
+                  </label>
+                ))}
+              </div>
+            )}
             <div className="mode-group">
-              <span>{pairLabels[pair].fx}</span>
-              {(Object.keys(t.modes) as ChartMode[]).map((mode) => (
+              <span>{t.tfpModeTitle}</span>
+              {(Object.keys(t.tfpModes) as TfpMode[]).map((mode) => (
                 <label className="radio-card" key={mode}>
-                  <input type="radio" name="chart-mode" value={mode} checked={chartMode === mode} onChange={() => setChartMode(mode)} />
-                  <span>{t.modes[mode]}</span>
+                  <input type="radio" name="tfp-mode" value={mode} checked={tfpMode === mode} onChange={() => setTfpMode(mode)} />
+                  <span>{t.tfpModes[mode]}</span>
                 </label>
               ))}
             </div>
-            {!hasSpreadData(pair) && <p className="data-note">{t.missingSpread}</p>}
+            <p className="data-note">{t.tfpModeNote}</p>
+            {selectedPair && !hasSpreadData(selectedPair) && <p className="data-note">{t.missingSpread}</p>}
           </aside>
           <section className="chart-panel" aria-label={t.tabs.explorer}>
             <div ref={chartRef} className="chart-surface" />
@@ -352,11 +423,81 @@ function App() {
                   ))}
                 </ul>
               </article>
+              <article>
+                <h3>{t.tfpMethodTitle}</h3>
+                <ul>
+                  {t.tfpMethodRows.map(([label, body]) => (
+                    <li key={label}>
+                      <strong>{label}</strong> {body}
+                    </li>
+                  ))}
+                </ul>
+              </article>
             </div>
           </section>
           <div className="data-title">
-            <BarChart3 size={18} />
-            <h2>{t.table}</h2>
+            <div className="data-title-text">
+              <BarChart3 size={18} />
+              <h2>{t.economyTable}</h2>
+            </div>
+            <label className="table-filter">
+              <span>{t.countryFilter}</span>
+              <select value={rawEconomy} onChange={(event) => setRawEconomy(event.target.value as EconomyKey)}>
+                {economyKeys.map((economy) => (
+                  <option key={economy} value={economy}>
+                    {economyLabels[economy][locale]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button className="export-button" type="button" onClick={handleExportExcel}>
+              <Download size={16} />
+              {t.exportExcel}
+            </button>
+          </div>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>{t.year}</th>
+                  <th>Economy</th>
+                  <th>RTFPNA 2010=1</th>
+                  <th>CTFP USA=1</th>
+                  <th>CPI (%)</th>
+                  <th>{t.labels.nominalRate}</th>
+                  <th>{t.labels.realRate}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {economyRows.map((row) => (
+                  <tr key={`${row.economy}-${row.year}`} className={Number(row.year) >= 2025 ? "estimated-row" : undefined}>
+                    <td>{row.year}</td>
+                    <td>{economyLabels[row.economy][locale]}</td>
+                    <td>{row.rtfpna ?? "—"}</td>
+                    <td>{row.ctfp ?? "—"}</td>
+                    <td>{row.cpi === null ? "—" : `${row.cpi}%`}</td>
+                    <td>{row.nominal10y === null ? "—" : `${row.nominal10y}%`}</td>
+                    <td>{row.realRate === null ? "—" : `${row.realRate}%`}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="data-title secondary-title">
+            <div className="data-title-text">
+              <BarChart3 size={18} />
+              <h2>{t.pairTable}</h2>
+            </div>
+            <label className="table-filter">
+              <span>{t.pairFilter}</span>
+              <select value={rawPair} onChange={(event) => setRawPair(event.target.value as PairKey)}>
+                {allPairKeys.map((pairKey) => (
+                  <option key={pairKey} value={pairKey}>
+                    {pairLabels[pairKey][locale]}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
           <div className="table-wrap">
             <table>
@@ -365,9 +506,10 @@ function App() {
                   <th>{t.year}</th>
                   <th>Pair</th>
                   <th>FX</th>
-                  <th>TFP Log Spread</th>
+                  <th>TFP Spread rtfpna</th>
+                  <th>TFP Spread ctfp</th>
                   <th>Nom Spread</th>
-                  <th>Real Spread</th>
+                  <th>{t.labels.real}</th>
                 </tr>
               </thead>
               <tbody>
@@ -376,7 +518,8 @@ function App() {
                     <td>{row.year}</td>
                     <td>{pairLabels[row.pair][locale]}</td>
                     <td>{row.fx ?? "—"}</td>
-                    <td>{row.tfp ?? "—"}</td>
+                    <td>{row.tfpRtfpna ?? "—"}</td>
+                    <td>{row.tfpCtfp ?? "—"}</td>
                     <td>{row.nominal === null ? "—" : `${row.nominal}%`}</td>
                     <td>{row.real === null ? "—" : `${row.real}%`}</td>
                   </tr>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dashboardData, pairGroups, years, type PairKey } from "../data/tfpDashboard";
+import { dashboardData, economyData, pairGroups, years, type EconomyKey, type PairKey } from "../data/tfpDashboard";
 
 describe("TFP dashboard data", () => {
   it("keeps every series aligned to the year range", () => {
@@ -11,9 +11,19 @@ describe("TFP dashboard data", () => {
 
     for (const pair of pairs) {
       expect(dashboardData.fx[pair]).toHaveLength(years.length);
-      expect(dashboardData.tfp[pair]).toHaveLength(years.length);
+      expect(dashboardData.tfp.rtfpna[pair]).toHaveLength(years.length);
+      expect(dashboardData.tfp.ctfp[pair]).toHaveLength(years.length);
       expect(dashboardData.nomSpread[pair]).toHaveLength(years.length);
       expect(dashboardData.realSpread[pair]).toHaveLength(years.length);
+    }
+
+    const economies = Object.keys(economyData) as EconomyKey[];
+    for (const economy of economies) {
+      expect(economyData[economy].rtfpna).toHaveLength(years.length);
+      expect(economyData[economy].ctfp).toHaveLength(years.length);
+      expect(economyData[economy].cpi).toHaveLength(years.length);
+      expect(economyData[economy].nominal10y).toHaveLength(years.length);
+      expect(economyData[economy].realRate).toHaveLength(years.length);
     }
   });
 
@@ -22,11 +32,20 @@ describe("TFP dashboard data", () => {
     expect(dashboardData.realSpread.usdtwd.some((value) => value !== null)).toBe(true);
     expect(dashboardData.nomSpread.jpytwd.some((value) => value !== null)).toBe(true);
     expect(dashboardData.realSpread.cnytwd.some((value) => value !== null)).toBe(true);
+    expect(dashboardData.fx.twdkrw.some((value) => value !== null)).toBe(true);
+    expect(dashboardData.realSpread.twdkrw.some((value) => value !== null)).toBe(true);
   });
 
   it("keeps EUR cross-pair TFP comparisons visible", () => {
-    expect(dashboardData.tfp.eurjpy.some((value) => value !== null)).toBe(true);
-    expect(dashboardData.tfp.eurcny.slice(-4).every((value) => value !== null)).toBe(true);
-    expect(new Set(dashboardData.tfp.eurcny.slice(-4)).size).toBeGreaterThan(1);
+    expect(dashboardData.tfp.rtfpna.eurjpy.some((value) => value !== null)).toBe(true);
+    expect(dashboardData.tfp.ctfp.eurjpy.some((value) => value !== null)).toBe(true);
+    expect(dashboardData.tfp.rtfpna.eurcny.slice(-4).every((value) => value !== null)).toBe(true);
+    expect(dashboardData.tfp.ctfp.eurcny.slice(-4).every((value) => value !== null)).toBe(true);
+    expect(new Set(dashboardData.tfp.rtfpna.eurcny.slice(-4)).size).toBeGreaterThan(1);
+    expect(new Set(dashboardData.tfp.ctfp.eurcny.slice(-4)).size).toBeGreaterThan(1);
+  });
+
+  it("keeps rtfpna and ctfp as distinct TFP measures", () => {
+    expect(dashboardData.tfp.rtfpna.usdcny).not.toEqual(dashboardData.tfp.ctfp.usdcny);
   });
 });
